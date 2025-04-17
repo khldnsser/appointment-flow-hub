@@ -261,7 +261,7 @@ const PatientDashboard = () => {
                   {format(new Date(selectedAppointment.dateTime), "EEEE, MMMM dd, yyyy")} at {formatAppointmentTime(selectedAppointment.dateTime)}
                 </span>
               )}
-            </DialogHeader>
+            </DialogDescription>
           </DialogHeader>
           
           {selectedAppointment && (
