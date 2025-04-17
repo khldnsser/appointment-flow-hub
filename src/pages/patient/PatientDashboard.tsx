@@ -1,15 +1,14 @@
-
 import React, { useState } from "react";
 import { useAuth, Appointment } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { format, addDays, startOfDay } from "date-fns";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { format } from "date-fns";
 import { toast } from "@/components/ui/sonner";
-import { Calendar as CalendarIcon, Clock, X, FileText, User, AlertTriangle } from "lucide-react";
+import { CalendarIcon, Clock, FileText, User, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
+import AppointmentCalendar from "@/components/shared/AppointmentCalendar";
 
 const PatientDashboard = () => {
   const { user, appointments, cancelAppointment } = useAuth();
@@ -19,15 +18,12 @@ const PatientDashboard = () => {
 
   if (!user || user.role !== "patient") return null;
 
-  // Filter appointments for the current patient
   const patientAppointments = appointments.filter(
     (appointment) => appointment.patientId === user.id
   );
 
-  // Generate dates for the 5-day calendar
   const calendarDates = Array.from({ length: 5 }, (_, i) => addDays(selectedDate, i));
 
-  // Group appointments by date
   const appointmentsByDate = calendarDates.map((date) => {
     return {
       date,
@@ -39,7 +35,6 @@ const PatientDashboard = () => {
     };
   });
 
-  // Stats for the dashboard
   const upcomingAppointments = patientAppointments.filter(
     (appointment) =>
       new Date(appointment.dateTime) > new Date() &&
@@ -50,7 +45,6 @@ const PatientDashboard = () => {
     (appointment) => appointment.status === "completed"
   );
 
-  // Handle appointment cancellation
   const handleCancelAppointment = () => {
     if (!selectedAppointment) return;
     
@@ -59,12 +53,10 @@ const PatientDashboard = () => {
     setIsDialogOpen(false);
   };
 
-  // Helper function to display appointment time
   const formatAppointmentTime = (dateTime: Date) => {
     return format(new Date(dateTime), "h:mm a");
   };
 
-  // Helper function to get the status color
   const getStatusColor = (status: string) => {
     switch (status) {
       case "scheduled":
@@ -87,7 +79,6 @@ const PatientDashboard = () => {
         </div>
       </div>
 
-      {/* Quick actions */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="card-hover">
           <CardContent className="p-6">
@@ -138,7 +129,6 @@ const PatientDashboard = () => {
         </Card>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -164,45 +154,15 @@ const PatientDashboard = () => {
         </Card>
       </div>
 
-      {/* Calendar */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Appointment Calendar</CardTitle>
-          <CardDescription>View your scheduled appointments for the next 5 days</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            {appointmentsByDate.map(({ date, appointments }) => (
-              <div key={date.toISOString()} className="calendar-day">
-                <div className="font-medium mb-2">
-                  {format(date, "EEE, MMM dd")}
-                </div>
-                {appointments.length > 0 ? (
-                  appointments.map((appointment) => (
-                    <div 
-                      key={appointment.id} 
-                      className="calendar-event"
-                      onClick={() => {
-                        setSelectedAppointment(appointment);
-                        setIsDialogOpen(true);
-                      }}
-                    >
-                      <div className="font-medium">
-                        {formatAppointmentTime(appointment.dateTime)}
-                      </div>
-                      <div>{appointment.doctorName}</div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-gray-400 text-sm italic">No appointments</div>
-                )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <AppointmentCalendar
+        appointments={patientAppointments}
+        onAppointmentClick={(appointment) => {
+          setSelectedAppointment(appointment);
+          setIsDialogOpen(true);
+        }}
+        userType="patient"
+      />
 
-      {/* Recent Appointments */}
       <Card>
         <CardHeader>
           <CardTitle>Recent & Upcoming Appointments</CardTitle>
@@ -250,7 +210,6 @@ const PatientDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Appointment Details Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>

@@ -1,15 +1,9 @@
-
 import React, { useState } from "react";
 import { useAuth, Appointment } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { format, addDays, startOfDay } from "date-fns";
-import { toast } from "@/components/ui/sonner";
-import { Check, Clock, Calendar as CalendarIcon, X } from "lucide-react";
+import { format } from "date-fns";
+import { CalendarIcon, Check, Clock } from "lucide-react";
+import AppointmentCalendar from "@/components/shared/AppointmentCalendar";
 
 const DoctorDashboard = () => {
   const { user, appointments, addPrescription } = useAuth();
@@ -20,15 +14,12 @@ const DoctorDashboard = () => {
 
   if (!user || user.role !== "doctor") return null;
 
-  // Filter appointments for the current doctor
   const doctorAppointments = appointments.filter(
     (appointment) => appointment.doctorId === user.id
   );
 
-  // Generate dates for the 5-day calendar
   const calendarDates = Array.from({ length: 5 }, (_, i) => addDays(selectedDate, i));
 
-  // Group appointments by date
   const appointmentsByDate = calendarDates.map((date) => {
     return {
       date,
@@ -40,7 +31,6 @@ const DoctorDashboard = () => {
     };
   });
 
-  // Handle prescription submission
   const handlePrescriptionSubmit = () => {
     if (!selectedAppointment) return;
     
@@ -50,7 +40,6 @@ const DoctorDashboard = () => {
     setPrescriptionText("");
   };
 
-  // Stats for the dashboard
   const todayAppointments = doctorAppointments.filter(
     (appointment) =>
       startOfDay(new Date(appointment.dateTime)).getTime() === startOfDay(new Date()).getTime() &&
@@ -67,12 +56,10 @@ const DoctorDashboard = () => {
     (appointment) => appointment.status === "completed"
   );
 
-  // Helper function to display appointment time
   const formatAppointmentTime = (dateTime: Date) => {
     return format(new Date(dateTime), "h:mm a");
   };
 
-  // Helper function to get the status color
   const getStatusColor = (status: string) => {
     switch (status) {
       case "scheduled":
@@ -95,7 +82,6 @@ const DoctorDashboard = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -132,155 +118,16 @@ const DoctorDashboard = () => {
         </Card>
       </div>
 
-      {/* Calendar Tabs */}
-      <Tabs defaultValue="calendar" className="w-full">
-        <TabsList>
-          <TabsTrigger value="calendar">Calendar View</TabsTrigger>
-          <TabsTrigger value="list">List View</TabsTrigger>
-        </TabsList>
-        
-        {/* Calendar View */}
-        <TabsContent value="calendar" className="w-full">
-          <Card>
-            <CardHeader>
-              <CardTitle>Appointment Calendar</CardTitle>
-              <CardDescription>
-                View and manage your schedule for the next 5 days
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                {appointmentsByDate.map(({ date, appointments }) => (
-                  <div key={date.toISOString()} className="calendar-day">
-                    <div className="font-medium mb-2">
-                      {format(date, "EEE, MMM dd")}
-                    </div>
-                    {appointments.length > 0 ? (
-                      appointments
-                        .sort((a, b) => 
-                          new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime()
-                        )
-                        .map((appointment) => (
-                          <div 
-                            key={appointment.id} 
-                            className="calendar-event"
-                            onClick={() => {
-                              setSelectedAppointment(appointment);
-                              setPrescriptionText(appointment.prescription || "");
-                              setIsDialogOpen(true);
-                            }}
-                          >
-                            <div className="font-medium">
-                              {formatAppointmentTime(appointment.dateTime)}
-                            </div>
-                            <div>{appointment.patientName}</div>
-                          </div>
-                        ))
-                    ) : (
-                      <div className="text-gray-400 text-sm italic">No appointments</div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        {/* List View */}
-        <TabsContent value="list">
-          <Card>
-            <CardHeader>
-              <CardTitle>Appointments List</CardTitle>
-              <CardDescription>
-                View all your upcoming and past appointments
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {upcomingAppointments.length > 0 ? (
-                  <div className="rounded-md border">
-                    <div className="bg-gray-50 p-3 border-b">
-                      <h3 className="font-medium">Upcoming Appointments</h3>
-                    </div>
-                    <div className="divide-y">
-                      {upcomingAppointments
-                        .sort((a, b) => 
-                          new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime()
-                        )
-                        .map((appointment) => (
-                          <div 
-                            key={appointment.id} 
-                            className="p-4 hover:bg-gray-50 cursor-pointer"
-                            onClick={() => {
-                              setSelectedAppointment(appointment);
-                              setPrescriptionText(appointment.prescription || "");
-                              setIsDialogOpen(true);
-                            }}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="font-medium">{appointment.patientName}</p>
-                                <p className="text-sm text-gray-500">
-                                  {format(new Date(appointment.dateTime), "EEEE, MMMM dd, yyyy")} at {formatAppointmentTime(appointment.dateTime)}
-                                </p>
-                              </div>
-                              <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(appointment.status)}`}>
-                                {appointment.status}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-10">
-                    <p className="text-gray-500">You have no upcoming appointments</p>
-                  </div>
-                )}
-                
-                {completedAppointments.length > 0 && (
-                  <div className="rounded-md border">
-                    <div className="bg-gray-50 p-3 border-b">
-                      <h3 className="font-medium">Past Appointments</h3>
-                    </div>
-                    <div className="divide-y">
-                      {completedAppointments
-                        .sort((a, b) => 
-                          new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime()
-                        )
-                        .map((appointment) => (
-                          <div 
-                            key={appointment.id} 
-                            className="p-4 hover:bg-gray-50 cursor-pointer"
-                            onClick={() => {
-                              setSelectedAppointment(appointment);
-                              setPrescriptionText(appointment.prescription || "");
-                              setIsDialogOpen(true);
-                            }}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="font-medium">{appointment.patientName}</p>
-                                <p className="text-sm text-gray-500">
-                                  {format(new Date(appointment.dateTime), "EEEE, MMMM dd, yyyy")} at {formatAppointmentTime(appointment.dateTime)}
-                                </p>
-                              </div>
-                              <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(appointment.status)}`}>
-                                {appointment.status}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      <AppointmentCalendar
+        appointments={doctorAppointments}
+        onAppointmentClick={(appointment) => {
+          setSelectedAppointment(appointment);
+          setPrescriptionText(appointment.prescription || "");
+          setIsDialogOpen(true);
+        }}
+        userType="doctor"
+      />
 
-      {/* Appointment Details Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
