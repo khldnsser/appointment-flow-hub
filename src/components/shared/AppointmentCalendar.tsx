@@ -3,14 +3,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { startOfWeek, addDays, format, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
-
-interface Appointment {
-  id: string;
-  dateTime: Date;
-  doctorName?: string;
-  patientName?: string;
-  status: "scheduled" | "completed" | "cancelled";
-}
+import { Appointment } from "@/contexts/AuthContext";
 
 interface AppointmentCalendarProps {
   appointments: Appointment[];
