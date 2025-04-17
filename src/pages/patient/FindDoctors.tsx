@@ -1,95 +1,98 @@
 
-import React from "react";
-import { Search, MapPin } from "lucide-react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SYMPTOM_SPECIALTY_MAP } from "@/contexts/AuthContext";
 
 const FindDoctors = () => {
+  const navigate = useNavigate();
   const { doctors } = useAuth();
-  const [searchTerm, setSearchTerm] = React.useState("");
-  const [selectedSpecialty, setSelectedSpecialty] = React.useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [specialty, setSpecialty] = useState("all");
 
   const specialties = Array.from(
-    new Set(
-      Object.values(SYMPTOM_SPECIALTY_MAP)
-        .flat()
-        .sort()
-    )
-  );
+    new Set(doctors.map((doctor) => doctor.specialty))
+  ).sort();
 
   const filteredDoctors = doctors.filter((doctor) => {
-    const matchesSearch =
-      doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doctor.specialization?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSpecialty = selectedSpecialty
-      ? doctor.specialization === selectedSpecialty
-      : true;
+    const matchesSearch = doctor.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesSpecialty =
+      specialty === "all" || doctor.specialty === specialty;
     return matchesSearch && matchesSpecialty;
   });
 
+  const handleBookAppointment = (doctorId: string) => {
+    navigate(`/patient/book-appointment?doctorId=${doctorId}`);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0">
+    <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-6">Find Doctors</h1>
+
+      <div className="flex flex-col md:flex-row gap-4 mb-8">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
+            placeholder="Search by doctor name..."
             className="pl-10"
-            placeholder="Search doctors by name or specialization..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
+        <Select value={specialty} onValueChange={setSpecialty}>
           <SelectTrigger className="w-full md:w-[200px]">
             <SelectValue placeholder="Filter by specialty" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Specialties</SelectItem>
-            {specialties.map((specialty) => (
-              <SelectItem key={specialty} value={specialty}>
-                {specialty}
+            <SelectItem value="all">All Specialties</SelectItem>
+            {specialties.map((spec) => (
+              <SelectItem key={spec} value={spec}>
+                {spec}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredDoctors.map((doctor) => (
-          <Card key={doctor.id} className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div>
+      {filteredDoctors.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">No doctors found matching your criteria.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredDoctors.map((doctor) => (
+            <Card key={doctor.id} className="overflow-hidden">
+              <CardContent className="p-6">
+                <div className="flex flex-col space-y-3">
                   <h3 className="font-semibold text-lg">{doctor.name}</h3>
-                  {doctor.specialization && (
-                    <p className="text-sm text-gray-500">{doctor.specialization}</p>
-                  )}
+                  <Badge className="w-fit">{doctor.specialty}</Badge>
+                  <p className="text-sm text-muted-foreground">
+                    {doctor.hospital || "Independent Practice"}
+                  </p>
+                  <p className="text-sm">
+                    {doctor.experience
+                      ? `${doctor.experience} years of experience`
+                      : "Experienced physician"}
+                  </p>
                 </div>
-              </div>
-              <div className="mt-4 space-y-2">
-                <div className="flex items-center text-sm text-gray-500">
-                  <MapPin className="mr-2 h-4 w-4" />
-                  Medical Center
-                </div>
+              </CardContent>
+              <CardFooter className="bg-muted/50 px-6 py-4">
                 <Button
-                  className="w-full mt-4"
-                  onClick={() => window.location.href = `/patient/book-appointment?doctorId=${doctor.id}`}
+                  className="w-full"
+                  onClick={() => handleBookAppointment(doctor.id)}
                 >
                   Book Appointment
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredDoctors.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-gray-500">No doctors found matching your criteria.</p>
+              </CardFooter>
+            </Card>
+          ))}
         </div>
       )}
     </div>
