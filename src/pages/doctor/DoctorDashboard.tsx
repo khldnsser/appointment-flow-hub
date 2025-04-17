@@ -1,7 +1,13 @@
+
 import React, { useState } from "react";
 import { useAuth, Appointment } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { format, startOfDay, addDays } from "date-fns";
+import { toast } from "@/components/ui/sonner";
 import { CalendarIcon, Check, Clock } from "lucide-react";
 import AppointmentCalendar from "@/components/shared/AppointmentCalendar";
 

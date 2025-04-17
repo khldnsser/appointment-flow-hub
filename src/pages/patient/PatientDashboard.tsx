@@ -1,9 +1,10 @@
+
 import React, { useState } from "react";
 import { useAuth, Appointment } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { format } from "date-fns";
+import { format, startOfDay, addDays } from "date-fns";
 import { toast } from "@/components/ui/sonner";
 import { CalendarIcon, Clock, FileText, User, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
