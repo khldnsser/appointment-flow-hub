@@ -488,7 +488,7 @@ export const AuthProvider = ({
 // Fix the error here - removing the navigate parameter
 export const AuthProviderWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
-    <AuthProvider navigate={() => {}}>{children}</AuthProvider>
+    <AuthProvider>{children}</AuthProvider>
   );
 };
 
