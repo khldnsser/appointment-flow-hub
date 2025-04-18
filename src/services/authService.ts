@@ -21,9 +21,12 @@ export const createNewDoctor = (
   licenseNumber: string,
   doctors: User[]
 ): User => {
+  // Add Dr. prefix if it's not already there
+  const formattedName = name.startsWith("Dr.") ? name : `Dr. ${name}`;
+  
   return {
     id: `doc${doctors.length + 1}`,
-    name,
+    name: formattedName,
     email,
     phoneNumber,
     role: "doctor",
