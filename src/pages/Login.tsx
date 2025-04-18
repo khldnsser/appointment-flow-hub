@@ -18,6 +18,7 @@ const Login = () => {
   // If user is already logged in, redirect them
   useEffect(() => {
     if (user) {
+      console.log("User already logged in, redirecting to dashboard:", user);
       const destination = user.role === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard';
       navigate(destination);
     }
