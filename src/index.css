@@ -6,58 +6,58 @@
 
 @layer base {
   :root {
-    --background: 220 47% 97%; /* Very light blue background */
-    --foreground: 220 15% 20%; /* Dark blue-grey text */
+    --background: 0 0% 100%; /* White background */
+    --foreground: 240 10% 3.9%; /* Very dark grey text */
     
     --card: 0 0% 100%; /* White cards */
-    --card-foreground: 220 15% 20%;
+    --card-foreground: 240 10% 3.9%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 20%;
+    --popover-foreground: 240 10% 3.9%;
     
-    --primary: 214 89% 63%; /* Soft light blue for primary elements */
-    --primary-foreground: 0 0% 100%;
+    --primary: 240 5.9% 10%; /* Dark grey for primary elements */
+    --primary-foreground: 0 0% 98%;
     
-    --secondary: 220 40% 95%; /* Very light blue-grey for secondary elements */
-    --secondary-foreground: 220 15% 20%;
+    --secondary: 240 4.8% 95.9%; /* Very light grey for secondary elements */
+    --secondary-foreground: 240 5.9% 10%;
     
-    --muted: 220 40% 95%;
-    --muted-foreground: 220 15% 45%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
     
-    --accent: 220 40% 95%;
-    --accent-foreground: 220 15% 20%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
     
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     
-    --border: 220 40% 90%;
-    --input: 220 40% 90%;
-    --ring: 214 89% 63%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
     
     --radius: 0.5rem;
   }
 
   .dark {
-    /* Reuse the same color scheme */
-    --background: 220 47% 97%;
-    --foreground: 220 15% 20%;
+    /* Use the same light theme colors to ensure consistency */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
-    --card-foreground: 220 15% 20%;
+    --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 20%;
-    --primary: 214 89% 63%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 40% 95%;
-    --secondary-foreground: 220 15% 20%;
-    --muted: 220 40% 95%;
-    --muted-foreground: 220 15% 45%;
-    --accent: 220 40% 95%;
-    --accent-foreground: 220 15% 20%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 220 40% 90%;
-    --input: 220 40% 90%;
-    --ring: 214 89% 63%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
   }
 }
 
