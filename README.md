@@ -71,3 +71,64 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## MySQL Backend Integration
+
+This application now includes a MySQL backend server for production use. The backend provides:
+
+- Authentication and authorization with JWT tokens
+- MySQL database for data persistence
+- Rate limiting to prevent API abuse
+- RESTful API endpoints for all application features
+
+### Setting up the Backend
+
+1. Make sure you have MySQL installed and running on your system.
+
+2. Create a database for the application:
+```sql
+CREATE DATABASE appointment_hub;
+```
+
+3. Navigate to the backend directory:
+```
+cd backend
+```
+
+4. Install dependencies:
+```
+npm install
+```
+
+5. Configure environment variables in the `.env` file (already created with default values).
+
+6. Start the backend server:
+```
+npm run dev
+```
+
+7. The server will be running at http://localhost:5000
+
+### API Endpoints
+
+The backend provides the following API endpoints:
+
+#### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/signup/patient` - Patient registration
+- `POST /api/auth/signup/doctor` - Doctor registration
+- `GET /api/auth/profile` - Get user profile
+
+#### Appointments
+- `GET /api/appointments` - Get user's appointments
+- `POST /api/appointments` - Create a new appointment
+- `POST /api/appointments/cancel/:appointmentId` - Cancel an appointment
+- `POST /api/appointments/complete/:appointmentId` - Mark appointment as completed
+- `POST /api/appointments/:appointmentId/prescription` - Add prescription to appointment
+- `GET /api/appointments/doctors` - Get all doctors
+
+#### Medical Records
+- `GET /api/medical-records/patient/:patientId` - Get patient's medical records
+- `GET /api/medical-records/:recordId` - Get a specific medical record
+- `POST /api/medical-records` - Add a new medical record
+- `PUT /api/medical-records/:recordId` - Update a medical record

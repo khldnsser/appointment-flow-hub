@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,6 +21,7 @@ import PatientLayout from "./components/layouts/PatientLayout";
 // Doctor pages
 import DoctorDashboard from "./pages/doctor/DoctorDashboard";
 import PatientRecords from "./pages/doctor/PatientRecords";
+import AllPatients from "./pages/doctor/AllPatients";
 
 // Patient pages
 import PatientDashboard from "./pages/patient/PatientDashboard";
@@ -99,7 +99,9 @@ const App = () => (
                 </ProtectedRoute>
               }>
                 <Route path="dashboard" element={<DoctorDashboard />} />
-                <Route path="records" element={<PatientRecords />} />
+                <Route path="all-patients" element={<AllPatients />} />
+                <Route path="patient-records/:patientId" element={<PatientRecords />} />
+                <Route path="records" element={<Navigate to="/doctor/all-patients" replace />} />
                 <Route path="settings" element={<div>Settings (Coming Soon)</div>} />
               </Route>
               

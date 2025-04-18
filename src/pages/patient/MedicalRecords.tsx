@@ -1,74 +1,108 @@
-
-import React from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
+import api from "@/services/api";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
-import { Appointment, MedicalRecord } from "@/types/auth";
+import { Skeleton } from "@/components/ui/skeleton";
+
+interface MedicalRecord {
+  id: string;
+  patientId: string;
+  doctorId: string;
+  doctorName: string;
+  date: string;
+  subjective: string;
+  objective: string;
+  assessment: string;
+  plan: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 const MedicalRecords = () => {
-  const { user, appointments } = useAuth();
+  const [records, setRecords] = useState<MedicalRecord[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  if (!user || user.role !== "patient") return null;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const userResponse = await api.get('/auth/profile');
+        const userId = userResponse.data.id;
+        
+        const recordsRes = await api.get(`/medical-records/patient/${userId}`);
+        setRecords(recordsRes.data);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching medical records:", error);
+        setLoading(false);
+      }
+    };
 
-  const patientAppointments = appointments.filter(
-    (apt) => apt.patientId === user.id
-  ).sort((a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime());
+    fetchData();
+  }, []);
 
-  // Get appointments with records
-  const getAppointmentWithRecord = (appointment: Appointment): { appointment: Appointment; record: MedicalRecord | undefined } => {
-    const record = user.medicalRecords?.find(
-      (rec) => rec.appointmentId === appointment.id
-    );
-    
-    return { appointment, record };
-  };
-
-  const appointmentsWithRecords = patientAppointments.map(getAppointmentWithRecord)
-    .filter((item) => item.record !== undefined);
+  // Sort by date (newest first)
+  const sortedRecords = [...records].sort((a, b) => {
+    return new Date(b.date).getTime() - new Date(a.date).getTime();
+  });
 
   return (
     <div className="container mx-auto py-6">
       <h1 className="text-3xl font-bold mb-6">Your Medical Records</h1>
       
-      {appointmentsWithRecords.length > 0 ? (
+      {loading ? (
         <div className="space-y-6">
-          {appointmentsWithRecords.map(({ appointment, record }) => (
-            <Card key={appointment.id} className="overflow-hidden">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-6 w-1/3 mb-2" />
+                <Skeleton className="h-4 w-1/4" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : sortedRecords.length > 0 ? (
+        <div className="space-y-6">
+          {sortedRecords.map((record) => (
+            <Card key={record.id} className="overflow-hidden">
               <CardHeader className="bg-muted/50">
                 <CardTitle className="text-xl">
-                  Appointment on {format(new Date(appointment.dateTime), "PPPP")}
+                  Record from {format(new Date(record.date), "PPPP")}
                 </CardTitle>
                 <CardDescription>
-                  With Dr. {appointment.doctorName} at {format(new Date(appointment.dateTime), "p")}
+                  By Dr. {record.doctorName}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-6">
-                {record && (
-                  <div className="grid gap-6">
-                    <div>
-                      <h3 className="font-semibold text-lg mb-2">Subjective</h3>
-                      <p className="text-muted-foreground">{record.subjective}</p>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg mb-2">Objective</h3>
-                      <p className="text-muted-foreground">{record.objective}</p>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg mb-2">Assessment</h3>
-                      <p className="text-muted-foreground">{record.assessment}</p>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg mb-2">Plan</h3>
-                      <p className="text-muted-foreground">{record.plan}</p>
-                    </div>
+                <div className="grid gap-6">
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">Subjective</h3>
+                    <p className="text-muted-foreground">{record.subjective}</p>
                   </div>
-                )}
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">Objective</h3>
+                    <p className="text-muted-foreground">{record.objective}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">Assessment</h3>
+                    <p className="text-muted-foreground">{record.assessment}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">Plan</h3>
+                    <p className="text-muted-foreground">{record.plan}</p>
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-4">
+                    {record.updatedAt > record.createdAt && (
+                      <p>Last updated: {format(new Date(record.updatedAt), "PPP")} at {format(new Date(record.updatedAt), "p")}</p>
+                    )}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           ))}

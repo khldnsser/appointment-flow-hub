@@ -1,8 +1,7 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import api from "@/services/api";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,26 +9,50 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { specializations } from "@/components/auth/doctorSpecializations";
 import { format, isSameDay, isAfter } from "date-fns";
-import { Appointment } from "@/types/auth";
 
 // Define the Doctor interface with the missing properties
 interface Doctor {
   id: string;
   name: string;
   email: string;
-  role: "doctor";
   phoneNumber: string;
   specialization?: string;
 }
 
+interface Appointment {
+  id: string;
+  doctorId: string;
+  patientId: string;
+  dateTime: string;
+  status: string;
+}
+
 const FindDoctors = () => {
   const navigate = useNavigate();
-  const { doctors, appointments } = useAuth();
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [specialty, setSpecialty] = useState("all");
+  const [loading, setLoading] = useState(true);
 
-  // Cast doctors to Doctor[] to ensure TypeScript recognizes the specialty property
-  const doctorsWithSpecialty = doctors as Doctor[];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [doctorsRes, appointmentsRes] = await Promise.all([
+          api.get("/auth/doctors"),
+          api.get("/appointments")
+        ]);
+        setDoctors(doctorsRes.data);
+        setAppointments(appointmentsRes.data);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   // Find next available appointment for each doctor
   const getNextAvailableSlot = (doctorId: string) => {
@@ -81,7 +104,7 @@ const FindDoctors = () => {
     return "No slots available in next 14 days";
   };
 
-  const filteredDoctors = doctorsWithSpecialty
+  const filteredDoctors = doctors
     .filter((doctor) => {
       const matchesSearch = doctor.name
         .toLowerCase()
@@ -136,7 +159,11 @@ const FindDoctors = () => {
         </Select>
       </div>
 
-      {filteredDoctors.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Loading doctors...</p>
+        </div>
+      ) : filteredDoctors.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-muted-foreground">No doctors found matching your criteria.</p>
         </div>

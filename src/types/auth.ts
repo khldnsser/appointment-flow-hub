@@ -1,4 +1,3 @@
-
 export type UserRole = "doctor" | "patient";
 
 export interface SOAPNote {
@@ -83,10 +82,10 @@ export interface AuthContextType extends AuthState {
     licenseNumber: string,
     hospitalKey: string
   ) => Promise<User>;
-  addMedicalRecord: (patientId: string, soapNote: SOAPNote) => void;
-  updateMedicalRecord: (patientId: string, recordId: string, soapNote: SOAPNote) => void;
-  completeAppointment: (appointmentId: string) => void;
-  cancelAppointment: (appointmentId: string) => void;
-  createAppointment: (appointment: Omit<Appointment, "id">) => void;
-  addPrescription: (appointmentId: string, prescription: string) => void;
+  addMedicalRecord: (patientId: string, soapNote: SOAPNote) => Promise<any>;
+  updateMedicalRecord: (recordId: string, soapNote: Partial<SOAPNote>) => Promise<any>;
+  completeAppointment: (appointmentId: string) => Promise<any>;
+  cancelAppointment: (appointmentId: string) => Promise<any>;
+  createAppointment: (appointment: Omit<Appointment, "id">) => Promise<any>;
+  addPrescription: (appointmentId: string, prescription: string) => Promise<any>;
 }

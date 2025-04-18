@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -99,6 +98,10 @@ const SignupSelect = () => {
             Already have an account?{" "}
             <Link to="/login" className="text-medblue-600 hover:underline">
               Sign in
+            </Link>
+            {" | "}
+            <Link to="/" className="text-medblue-600 hover:underline">
+              Back to Home
             </Link>
           </p>
         </div>
