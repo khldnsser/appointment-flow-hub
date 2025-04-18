@@ -1,40 +1,10 @@
-
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { User, Appointment, MedicalRecord, UserRole } from "@/types/auth";
-import { toast } from "@/components/ui/sonner";
-import { SOAPNote } from "@/services/medicalRecordService";
-import { useNavigate } from "react-router-dom";
-
-type AuthContextType = {
-  user: User | null;
-  login: (email: string, password: string) => Promise<User>;
-  logout: () => void;
-  signupPatient: (
-    name: string, 
-    email: string, 
-    phoneNumber: string, 
-    password: string
-  ) => Promise<User>;
-  signupDoctor: (
-    name: string,
-    email: string,
-    phoneNumber: string,
-    password: string,
-    specialization: string,
-    licenseNumber: string,
-    hospitalKey: string
-  ) => Promise<User>;
-  appointments: Appointment[];
-  doctors: User[];
-  patients: User[];
-  addMedicalRecord: (patientId: string, soapNote: SOAPNote) => void;
-  updateMedicalRecord: (patientId: string, recordId: string, soapNote: SOAPNote) => void;
-  completeAppointment: (appointmentId: string) => void;
-  cancelAppointment: (appointmentId: string) => void;
-  createAppointment: (appointment: Omit<Appointment, "id">) => void;
-  addPrescription: (appointmentId: string, prescription: string) => void;
-};
+import { AuthContextType, User, SOAPNote } from "@/types/auth";
+import { useAuthState } from "@/hooks/useAuthState";
+import * as authService from "@/services/authService";
+import * as appointmentService from "@/services/appointmentService";
+import * as medicalRecordService from "@/services/medicalRecordService";
 
 const defaultContextValue: AuthContextType = {
   user: null,
@@ -56,11 +26,9 @@ const defaultContextValue: AuthContextType = {
 const AuthContext = createContext<AuthContextType>(defaultContextValue);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [doctors, setDoctors] = useState<User[]>([]);
-  const [patients, setPatients] = useState<User[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const { state, setters } = useAuthState();
+  const { user, appointments, doctors, patients } = state;
+  const { setUser, setAppointments, setDoctors, setPatients } = setters;
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -68,7 +36,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.log("Auth state changed:", event, session?.user?.id);
         if (event === 'SIGNED_IN' && session) {
           try {
-            const userData = await fetchUserProfile(session.user.id);
+            const userData = await authService.fetchUserProfile(session.user.id);
             setUser(userData);
           } catch (error) {
             console.error("Error fetching user profile:", error);
@@ -85,13 +53,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.log("Initial session check:", session?.user?.id);
         
         if (session?.user) {
-          const userData = await fetchUserProfile(session.user.id);
+          const userData = await authService.fetchUserProfile(session.user.id);
           setUser(userData);
         }
       } catch (error) {
         console.error("Session check error:", error);
-      } finally {
-        setIsInitialized(true);
       }
     };
 
@@ -100,7 +66,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [setUser]);
 
   useEffect(() => {
     if (user) {
@@ -176,309 +142,49 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setAppointments(mockAppointments);
   };
 
-  const fetchUserProfile = async (userId: string): Promise<User> => {
-    try {
-      console.log("Fetching profile for user ID:", userId);
-      
-      // Try fetching patient profile first
-      const { data: patientData, error: patientError } = await supabase
-        .from('patient_profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (!patientError && patientData) {
-        return {
-          id: patientData.id,
-          name: patientData.name,
-          email: patientData.email,
-          role: 'patient',
-          phoneNumber: patientData.phone_number,
-          medicalRecords: [],
-        };
-      }
-
-      // If not a patient, try fetching doctor profile
-      const { data: doctorData, error: doctorError } = await supabase
-        .from('doctor_profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (!doctorError && doctorData) {
-        return {
-          id: doctorData.id,
-          name: doctorData.name,
-          email: doctorData.email,
-          role: 'doctor',
-          phoneNumber: doctorData.phone_number,
-          specialization: doctorData.specialization,
-          licenseNumber: doctorData.license_number,
-        };
-      }
-
-      throw new Error('No profile found');
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-      throw error;
-    }
-  };
-
-  const login = async (email: string, password: string): Promise<User> => {
-    try {
-      console.log("Login attempt for:", email);
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
+  const contextValue: AuthContextType = {
+    user,
+    appointments,
+    doctors,
+    patients,
+    login: (email: string, password: string) => authService.login(email, password),
+    logout: () => authService.logout(),
+    signupPatient: (name: string, email: string, phoneNumber: string, password: string) =>
+      authService.signupPatient(name, email, phoneNumber, password),
+    signupDoctor: (
+      name: string,
+      email: string,
+      phoneNumber: string,
+      password: string,
+      specialization: string,
+      licenseNumber: string,
+      hospitalKey: string
+    ) =>
+      authService.signupDoctor(
+        name,
         email,
+        phoneNumber,
         password,
-      });
-
-      if (error) {
-        console.error("Supabase auth error:", error);
-        toast.error(error.message);
-        throw error;
-      }
-
-      if (!data.user) {
-        console.error("No user returned from login");
-        throw new Error('Login failed');
-      }
-      
-      console.log("Supabase auth successful, user ID:", data.user.id);
-      
-      const userProfile = await fetchUserProfile(data.user.id);
-      console.log("User profile fetched:", userProfile);
-      
-      return userProfile;
-    } catch (error) {
-      console.error("Login function error:", error);
-      throw error;
-    }
-  };
-
-  const logout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error("Logout error:", error);
-        toast.error("Failed to log out");
-        throw error;
-      }
-      
-      setUser(null);
-      
-      // Force redirect to login page
-      window.location.href = '/login';
-    } catch (error) {
-      console.error("Logout function error:", error);
-      toast.error("Failed to log out");
-    }
-  };
-
-  const signupPatient = async (
-    name: string, 
-    email: string, 
-    phoneNumber: string, 
-    password: string
-  ): Promise<User> => {
-    try {
-      console.log("Patient signup attempt for:", email);
-      
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-            email,
-            phoneNumber,
-            role: 'patient',
-          }
-        }
-      });
-
-      if (error) {
-        console.error("Signup error:", error);
-        toast.error(error.message);
-        throw error;
-      }
-
-      if (!data.user) {
-        console.error("No user returned from signup");
-        throw new Error('Signup failed');
-      }
-      
-      console.log("Signup successful, user ID:", data.user.id);
-      
-      const newUser: User = {
-        id: data.user.id,
-        name: name,
-        email: email,
-        role: 'patient',
-        phoneNumber: phoneNumber,
-        medicalRecords: [],
-      };
-      
-      return newUser;
-    } catch (error) {
-      console.error("Patient signup error:", error);
-      throw error;
-    }
-  };
-
-  const signupDoctor = async (
-    name: string,
-    email: string,
-    phoneNumber: string,
-    password: string,
-    specialization: string,
-    licenseNumber: string,
-    hospitalKey: string
-  ): Promise<User> => {
-    try {
-      console.log("Doctor signup attempt for:", email);
-      
-      if (hospitalKey !== '1234') {
-        throw new Error('Invalid hospital key');
-      }
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-            email,
-            phoneNumber,
-            role: 'doctor',
-            specialization,
-            licenseNumber,
-          }
-        }
-      });
-
-      if (error) {
-        console.error("Doctor signup error:", error);
-        toast.error(error.message);
-        throw error;
-      }
-
-      if (!data.user) {
-        console.error("No user returned from doctor signup");
-        throw new Error('Signup failed');
-      }
-      
-      console.log("Doctor signup successful, user ID:", data.user.id);
-      
-      const newUser: User = {
-        id: data.user.id,
-        name: name,
-        email: email,
-        role: 'doctor',
-        phoneNumber: phoneNumber,
-        specialization: specialization,
-        licenseNumber: licenseNumber,
-      };
-      
-      return newUser;
-    } catch (error) {
-      console.error("Doctor signup error:", error);
-      throw error;
-    }
-  };
-
-  const createAppointment = (appointmentData: Omit<Appointment, "id">) => {
-    const newAppointment: Appointment = {
-      ...appointmentData,
-      id: `apt${appointments.length + 1}`,
-    };
-    setAppointments([...appointments, newAppointment]);
-    toast.success("Appointment created successfully");
-  };
-
-  const cancelAppointment = (appointmentId: string) => {
-    setAppointments(appointments.map(apt => 
-      apt.id === appointmentId ? { ...apt, status: "cancelled" } : apt
-    ));
-    toast.success("Appointment cancelled successfully");
-  };
-
-  const completeAppointment = (appointmentId: string) => {
-    setAppointments(appointments.map(apt => 
-      apt.id === appointmentId ? { ...apt, status: "completed" } : apt
-    ));
-    toast.success("Appointment marked as completed");
-  };
-
-  const addPrescription = (appointmentId: string, prescription: string) => {
-    setAppointments(appointments.map(apt => 
-      apt.id === appointmentId ? { ...apt, prescription } : apt
-    ));
-    toast.success("Prescription added successfully");
-  };
-
-  const addMedicalRecord = (patientId: string, soapNote: SOAPNote) => {
-    const newRecord: MedicalRecord = {
-      id: `record${Date.now()}`,
-      date: new Date(),
-      appointmentId: soapNote.appointmentId,
-      doctorName: soapNote.doctorName,
-      doctorId: soapNote.doctorId,
-      subjective: soapNote.subjective,
-      objective: soapNote.objective,
-      assessment: soapNote.assessment,
-      plan: soapNote.plan,
-    };
-
-    setPatients(patients.map(patient => {
-      if (patient.id === patientId) {
-        const updatedRecords = patient.medicalRecords ? [...patient.medicalRecords, newRecord] : [newRecord];
-        return { ...patient, medicalRecords: updatedRecords };
-      }
-      return patient;
-    }));
-  };
-
-  const updateMedicalRecord = (patientId: string, recordId: string, soapNote: SOAPNote) => {
-    setPatients(patients.map(patient => {
-      if (patient.id === patientId && patient.medicalRecords) {
-        const updatedRecords = patient.medicalRecords.map(record => {
-          if (record.id === recordId) {
-            return {
-              ...record,
-              subjective: soapNote.subjective,
-              objective: soapNote.objective,
-              assessment: soapNote.assessment,
-              plan: soapNote.plan,
-            };
-          }
-          return record;
-        });
-        return { ...patient, medicalRecords: updatedRecords };
-      }
-      return patient;
-    }));
+        specialization,
+        licenseNumber,
+        hospitalKey
+      ),
+    createAppointment: (appointmentData) =>
+      appointmentService.createAppointment(appointments, setAppointments, appointmentData),
+    cancelAppointment: (appointmentId) =>
+      appointmentService.cancelAppointment(appointments, setAppointments, appointmentId),
+    completeAppointment: (appointmentId) =>
+      appointmentService.completeAppointment(appointments, setAppointments, appointmentId),
+    addPrescription: (appointmentId, prescription) =>
+      appointmentService.addPrescription(appointments, setAppointments, appointmentId, prescription),
+    addMedicalRecord: (patientId, soapNote) =>
+      medicalRecordService.addMedicalRecord(patients, setPatients, patientId, soapNote),
+    updateMedicalRecord: (patientId, recordId, soapNote) =>
+      medicalRecordService.updateMedicalRecord(patients, setPatients, patientId, recordId, soapNote),
   };
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        login, 
-        logout, 
-        signupPatient, 
-        signupDoctor,
-        appointments,
-        doctors,
-        patients,
-        addMedicalRecord,
-        updateMedicalRecord,
-        completeAppointment,
-        cancelAppointment,
-        createAppointment,
-        addPrescription
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,61 +1,56 @@
 
-import { Appointment } from "../types/auth";
+import { Appointment, SOAPNote, User } from "@/types/auth";
+import { toast } from "@/components/ui/sonner";
 
-export const handleCreateAppointment = (
-  appointmentData: Omit<Appointment, "id">,
-  appointments: Appointment[]
-): { newAppointment: Appointment; updatedAppointments: Appointment[] } => {
-  const existingAppointment = appointments.find(
-    (app) =>
-      app.doctorId === appointmentData.doctorId &&
-      app.patientId === appointmentData.patientId &&
-      app.status === "scheduled"
-  );
-
+export const createAppointment = (
+  appointments: Appointment[],
+  setAppointments: (appointments: Appointment[]) => void,
+  appointmentData: Omit<Appointment, "id">
+) => {
   const newAppointment: Appointment = {
     ...appointmentData,
-    id: `app${appointments.length + 1}`,
+    id: `apt${appointments.length + 1}`,
   };
-
-  if (existingAppointment) {
-    const updatedAppointments = appointments.map((app) =>
-      app.id === existingAppointment.id ? { ...app, status: "cancelled" as const } : app
-    );
-    return {
-      newAppointment,
-      updatedAppointments: [...updatedAppointments, newAppointment],
-    };
-  }
-
-  return {
-    newAppointment,
-    updatedAppointments: [...appointments, newAppointment],
-  };
+  setAppointments([...appointments, newAppointment]);
+  toast.success("Appointment created successfully");
 };
 
-export const handleUpdateAppointment = (
-  updatedAppointment: Appointment,
-  appointments: Appointment[]
-): Appointment[] => {
-  return appointments.map((app) =>
-    app.id === updatedAppointment.id ? updatedAppointment : app
+export const cancelAppointment = (
+  appointments: Appointment[],
+  setAppointments: (appointments: Appointment[]) => void,
+  appointmentId: string
+) => {
+  setAppointments(
+    appointments.map(apt => 
+      apt.id === appointmentId ? { ...apt, status: "cancelled" } : apt
+    )
   );
+  toast.success("Appointment cancelled successfully");
 };
 
-export const handleCancelAppointment = (
+export const completeAppointment = (
+  appointments: Appointment[],
+  setAppointments: (appointments: Appointment[]) => void,
+  appointmentId: string
+) => {
+  setAppointments(
+    appointments.map(apt => 
+      apt.id === appointmentId ? { ...apt, status: "completed" } : apt
+    )
+  );
+  toast.success("Appointment marked as completed");
+};
+
+export const addPrescription = (
+  appointments: Appointment[],
+  setAppointments: (appointments: Appointment[]) => void,
   appointmentId: string,
-  appointments: Appointment[]
-): Appointment[] => {
-  return appointments.map((app) =>
-    app.id === appointmentId ? { ...app, status: "cancelled" as const } : app
+  prescription: string
+) => {
+  setAppointments(
+    appointments.map(apt => 
+      apt.id === appointmentId ? { ...apt, prescription } : apt
+    )
   );
-};
-
-export const handleCompleteAppointment = (
-  appointmentId: string,
-  appointments: Appointment[]
-): Appointment[] => {
-  return appointments.map((app) =>
-    app.id === appointmentId ? { ...app, status: "completed" as const } : app
-  );
+  toast.success("Prescription added successfully");
 };

@@ -1,4 +1,3 @@
-
 export type UserRole = "doctor" | "patient";
 
 export interface MedicalRecord {
@@ -52,3 +51,31 @@ export const SYMPTOM_SPECIALTY_MAP: Record<string, string[]> = {
   "back pain": ["Orthopedics", "Neurology", "Physical Therapy"],
   "dizziness": ["Neurology", "ENT", "Cardiology"],
 };
+
+export interface AuthState {
+  user: User | null;
+  appointments: Appointment[];
+  doctors: User[];
+  patients: User[];
+}
+
+export interface AuthContextType extends AuthState {
+  login: (email: string, password: string) => Promise<User>;
+  logout: () => void;
+  signupPatient: (name: string, email: string, phoneNumber: string, password: string) => Promise<User>;
+  signupDoctor: (
+    name: string,
+    email: string,
+    phoneNumber: string,
+    password: string,
+    specialization: string,
+    licenseNumber: string,
+    hospitalKey: string
+  ) => Promise<User>;
+  addMedicalRecord: (patientId: string, soapNote: SOAPNote) => void;
+  updateMedicalRecord: (patientId: string, recordId: string, soapNote: SOAPNote) => void;
+  completeAppointment: (appointmentId: string) => void;
+  cancelAppointment: (appointmentId: string) => void;
+  createAppointment: (appointment: Omit<Appointment, "id">) => void;
+  addPrescription: (appointmentId: string, prescription: string) => void;
+}

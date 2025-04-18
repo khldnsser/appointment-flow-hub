@@ -1,51 +1,56 @@
 
-import { User, MedicalRecord } from "../types/auth";
+import { User, MedicalRecord, SOAPNote } from "@/types/auth";
 
-export interface SOAPNote {
-  appointmentId: string;
-  doctorName: string;
-  doctorId: string;  // Added this field
-  subjective: string;
-  objective: string;
-  assessment: string;
-  plan: string;
-}
-
-export const addNewMedicalRecord = (
+export const addMedicalRecord = (
+  patients: User[],
+  setPatients: (patients: User[]) => void,
   patientId: string,
-  soapNote: SOAPNote,
-  patients: User[]
-): User[] => {
-  return patients.map((patient) => {
+  soapNote: SOAPNote
+) => {
+  const newRecord: MedicalRecord = {
+    id: `record${Date.now()}`,
+    date: new Date(),
+    appointmentId: soapNote.appointmentId,
+    doctorName: soapNote.doctorName,
+    doctorId: soapNote.doctorId,
+    subjective: soapNote.subjective,
+    objective: soapNote.objective,
+    assessment: soapNote.assessment,
+    plan: soapNote.plan,
+  };
+
+  setPatients(patients.map(patient => {
     if (patient.id === patientId) {
-      const newRecord: MedicalRecord = {
-        id: `rec${(patient.medicalRecords?.length || 0) + 1}`,
-        date: new Date(),
-        appointmentId: soapNote.appointmentId,
-        doctorName: soapNote.doctorName,
-        doctorId: soapNote.doctorId,  // Include doctorId in the new record
-        subjective: soapNote.subjective,
-        objective: soapNote.objective,
-        assessment: soapNote.assessment,
-        plan: soapNote.plan,
-      };
-      
-      return {
-        ...patient,
-        medicalRecords: [...(patient.medicalRecords || []), newRecord],
-      };
+      const updatedRecords = patient.medicalRecords ? [...patient.medicalRecords, newRecord] : [newRecord];
+      return { ...patient, medicalRecords: updatedRecords };
     }
     return patient;
-  });
+  }));
 };
 
-export const getMedicalRecordsByAppointmentId = (
-  patient: User | null,
-  appointmentId: string
-): MedicalRecord | undefined => {
-  if (!patient || !patient.medicalRecords) return undefined;
-  
-  return patient.medicalRecords.find(
-    (record) => record.appointmentId === appointmentId
-  );
+export const updateMedicalRecord = (
+  patients: User[],
+  setPatients: (patients: User[]) => void,
+  patientId: string,
+  recordId: string,
+  soapNote: SOAPNote
+) => {
+  setPatients(patients.map(patient => {
+    if (patient.id === patientId && patient.medicalRecords) {
+      const updatedRecords = patient.medicalRecords.map(record => {
+        if (record.id === recordId) {
+          return {
+            ...record,
+            subjective: soapNote.subjective,
+            objective: soapNote.objective,
+            assessment: soapNote.assessment,
+            plan: soapNote.plan,
+          };
+        }
+        return record;
+      });
+      return { ...patient, medicalRecords: updatedRecords };
+    }
+    return patient;
+  }));
 };
