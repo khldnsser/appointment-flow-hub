@@ -18,6 +18,17 @@ interface MedicalRecord {
   updatedAt: string;
 }
 
+interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  role: 'patient' | 'doctor';
+}
+
+interface ApiResponse<T> {
+  data: T;
+}
+
 const MedicalRecords = () => {
   const [records, setRecords] = useState<MedicalRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,10 +36,10 @@ const MedicalRecords = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const userResponse = await api.get('/auth/profile');
+        const userResponse: ApiResponse<UserProfile> = await api.get('/auth/profile');
         const userId = userResponse.data.id;
         
-        const recordsRes = await api.get(`/medical-records/patient/${userId}`);
+        const recordsRes: ApiResponse<MedicalRecord[]> = await api.get(`/medical-records/patient/${userId}`);
         setRecords(recordsRes.data);
         setLoading(false);
       } catch (error) {

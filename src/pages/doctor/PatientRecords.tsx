@@ -31,10 +31,19 @@ interface MedicalRecord {
   updatedAt: string;
 }
 
+interface User {
+  id: string;
+  role: 'doctor' | 'patient';
+}
+
+interface AuthContextType {
+  user: User | null;
+}
+
 const PatientRecords = () => {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useAuth() as AuthContextType;
   const currentDoctorId = user?.id;
   const [patient, setPatient] = useState<Patient | null>(null);
   const [records, setRecords] = useState<MedicalRecord[]>([]);

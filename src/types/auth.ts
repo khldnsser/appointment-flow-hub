@@ -82,10 +82,10 @@ export interface AuthContextType extends AuthState {
     licenseNumber: string,
     hospitalKey: string
   ) => Promise<User>;
-  addMedicalRecord: (patientId: string, soapNote: SOAPNote) => Promise<any>;
-  updateMedicalRecord: (recordId: string, soapNote: Partial<SOAPNote>) => Promise<any>;
-  completeAppointment: (appointmentId: string) => Promise<any>;
-  cancelAppointment: (appointmentId: string) => Promise<any>;
-  createAppointment: (appointment: Omit<Appointment, "id">) => Promise<any>;
-  addPrescription: (appointmentId: string, prescription: string) => Promise<any>;
+  addMedicalRecord: (patientId: string, soapNote: SOAPNote) => Promise<MedicalRecord>;
+  updateMedicalRecord: (recordId: string, soapNote: Partial<SOAPNote>) => Promise<MedicalRecord>;
+  completeAppointment: (appointmentId: string) => Promise<Appointment>;
+  cancelAppointment: (appointmentId: string) => Promise<Appointment>;
+  createAppointment: (appointment: Omit<Appointment, "id">) => Promise<Appointment>;
+  addPrescription: (appointmentId: string, prescription: string) => Promise<Appointment>;
 }
