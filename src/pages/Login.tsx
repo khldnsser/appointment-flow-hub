@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -6,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -19,13 +21,39 @@ const Login = () => {
     setIsLoading(true);
 
     try {
+      // Detailed error logging for Supabase authentication
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error("Supabase Login Error:", error);
+        toast.error(error.message || "Login failed. Please try again.");
+        return;
+      }
+
+      if (!data.user) {
+        toast.error("No user found. Please check your credentials.");
+        return;
+      }
+
+      // Proceed with login using the context method
       const user = await login(email, password);
+      
       if (user) {
         toast.success(`Welcome back, ${user.name}!`);
+        
+        // Navigate based on user role
+        if (user.role === 'doctor') {
+          navigate('/doctor/dashboard');
+        } else {
+          navigate('/patient/dashboard');
+        }
       }
     } catch (error) {
-      console.error("Login error:", error);
-      toast.error("Login failed. Please check your credentials.");
+      console.error("Login Catch Block Error:", error);
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
