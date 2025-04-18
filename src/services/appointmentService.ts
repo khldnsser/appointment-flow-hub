@@ -5,9 +5,21 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const createAppointment = async (appointmentData: Omit<Appointment, "id">) => {
   try {
+    // Transform from camelCase to snake_case for the database
+    const dbAppointmentData = {
+      doctor_id: appointmentData.doctorId,
+      patient_id: appointmentData.patientId,
+      doctor_name: appointmentData.doctorName,
+      patient_name: appointmentData.patientName,
+      date_time: appointmentData.dateTime.toISOString(),
+      status: appointmentData.status,
+      prescription: appointmentData.prescription,
+      notes: appointmentData.notes
+    };
+    
     const { data, error } = await supabase
       .from('appointments')
-      .insert([appointmentData])
+      .insert([dbAppointmentData])
       .select()
       .single();
 

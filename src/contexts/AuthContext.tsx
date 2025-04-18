@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthContextType, User, SOAPNote, UserRole, Appointment } from "@/types/auth";
@@ -131,10 +132,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (error) throw error;
         
-        setAppointments(data.map(apt => ({
-          ...apt,
-          dateTime: new Date(apt.date_time)
-        })));
+        // Map the database fields (snake_case) to our Appointment interface (camelCase)
+        const formattedAppointments: Appointment[] = data.map(apt => ({
+          id: apt.id,
+          doctorId: apt.doctor_id,
+          patientId: apt.patient_id,
+          doctorName: apt.doctor_name,
+          patientName: apt.patient_name,
+          dateTime: new Date(apt.date_time),
+          status: apt.status as "scheduled" | "completed" | "cancelled",
+          prescription: apt.prescription,
+          notes: apt.notes
+        }));
+        
+        setAppointments(formattedAppointments);
       } catch (error) {
         console.error('Error fetching appointments:', error);
       }
@@ -174,7 +185,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       ),
     createAppointment: async (appointmentData) => {
       const newAppointment = await appointmentService.createAppointment(appointmentData);
-      setAppointments([...appointments, { ...newAppointment, dateTime: new Date(newAppointment.date_time) }]);
+      
+      // Convert the returned DB object to our Appointment type
+      const formattedAppointment: Appointment = {
+        id: newAppointment.id,
+        doctorId: newAppointment.doctor_id,
+        patientId: newAppointment.patient_id,
+        doctorName: newAppointment.doctor_name,
+        patientName: newAppointment.patient_name,
+        dateTime: new Date(newAppointment.date_time),
+        status: newAppointment.status as "scheduled" | "completed" | "cancelled",
+        prescription: newAppointment.prescription,
+        notes: newAppointment.notes
+      };
+      
+      setAppointments([...appointments, formattedAppointment]);
     },
     cancelAppointment: async (appointmentId) => {
       await appointmentService.cancelAppointment(appointmentId);
