@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,7 +31,9 @@ const Login = () => {
       const userData = await login(email, password);
       console.log("Login successful, user data:", userData);
       
-      // Let the useEffect handle navigation based on user role
+      // Navigate based on user role
+      const destination = userData.role === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard';
+      navigate(destination);
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Login failed. Please check your credentials.");

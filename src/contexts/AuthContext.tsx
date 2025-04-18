@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, Appointment, MedicalRecord, UserRole } from "@/types/auth";
 import { toast } from "@/components/ui/sonner";
 import { SOAPNote } from "@/services/medicalRecordService";
+import { useNavigate } from "react-router-dom";
 
 type AuthContextType = {
   user: User | null;
@@ -53,13 +54,7 @@ const defaultContextValue: AuthContextType = {
 
 const AuthContext = createContext<AuthContextType>(defaultContextValue);
 
-export const AuthProvider = ({ 
-  children, 
-  navigate 
-}: { 
-  children: React.ReactNode;
-  navigate: Function | (() => void);
-}) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [doctors, setDoctors] = useState<User[]>([]);
@@ -267,9 +262,6 @@ export const AuthProvider = ({
     try {
       await supabase.auth.signOut();
       setUser(null);
-      if (typeof navigate === 'function') {
-        navigate('/');
-      }
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Failed to log out");
@@ -485,7 +477,6 @@ export const AuthProvider = ({
   );
 };
 
-// Fix the error here - removing the navigate parameter
 export const AuthProviderWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <AuthProvider>{children}</AuthProvider>
