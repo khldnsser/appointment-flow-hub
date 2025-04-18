@@ -1,8 +1,11 @@
-import React from "react";
+
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { startOfWeek, addDays, format, isSameDay } from "date-fns";
+import { startOfWeek, addDays, format, isSameDay, subWeeks, addWeeks } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Appointment } from "@/types/auth";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface AppointmentCalendarProps {
   appointments: Appointment[];
@@ -13,8 +16,8 @@ interface AppointmentCalendarProps {
 const HOURS = Array.from({ length: 9 }, (_, i) => i + 9); // 9 AM to 5 PM
 
 const AppointmentCalendar = ({ appointments, onAppointmentClick, userType }: AppointmentCalendarProps) => {
-  const mondayOfWeek = startOfWeek(new Date(), { weekStartsOn: 1 });
-  const weekDays = Array.from({ length: 5 }, (_, i) => addDays(mondayOfWeek, i));
+  const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const weekDays = Array.from({ length: 5 }, (_, i) => addDays(currentWeekStart, i));
 
   const getAppointmentsForDateAndHour = (date: Date, hour: number) => {
     return appointments.filter((apt) => {
@@ -23,11 +26,31 @@ const AppointmentCalendar = ({ appointments, onAppointmentClick, userType }: App
     });
   };
 
+  const goToPreviousWeek = () => {
+    setCurrentWeekStart(subWeeks(currentWeekStart, 1));
+  };
+
+  const goToNextWeek = () => {
+    setCurrentWeekStart(addWeeks(currentWeekStart, 1));
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Schedule</CardTitle>
-        <CardDescription>Your {userType === "doctor" ? "patient appointments" : "medical appointments"} for the week</CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Schedule</CardTitle>
+            <CardDescription>Your {userType === "doctor" ? "patient appointments" : "medical appointments"} for the week</CardDescription>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="icon" onClick={goToPreviousWeek}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={goToNextWeek}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="w-full overflow-x-auto">
