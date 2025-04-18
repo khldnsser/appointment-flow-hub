@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate, NavigateFunction } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -76,66 +75,44 @@ export const AuthProvider = ({
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [doctors, setDoctors] = useState<User[]>([]);
   const [patients, setPatients] = useState<User[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [authInitialized, setAuthInitialized] = useState(false);
 
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        // First, set up the auth state change listener
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, session) => {
-            if (event === 'SIGNED_IN' && session) {
-              try {
-                await fetchUserProfile(session.user.id);
-              } catch (error) {
-                console.error("Auth state change error:", error);
-                setUser(null);
-              } finally {
-                setIsLoading(false);
-              }
-            } else if (event === 'SIGNED_OUT') {
-              setUser(null);
-              setIsLoading(false);
-            }
-          }
-        );
-
-        // Then check the current session
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          try {
-            await fetchUserProfile(session.user.id);
-          } catch (error) {
-            console.error("Session check error:", error);
-            setUser(null);
-          }
-        }
-        
-        setIsLoading(false);
-        setAuthInitialized(true);
-
-        // Cleanup subscription
-        return () => {
-          subscription.unsubscribe();
-        };
-      } catch (error) {
-        console.error("Auth initialization error:", error);
-        setIsLoading(false);
-        setAuthInitialized(true);
+    // Check initial session
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await fetchUserProfile(session.user.id);
       }
     };
 
-    initAuth();
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          await fetchUserProfile(session.user.id);
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+        }
+      }
+    );
+
+    checkSession();
+
+    // Cleanup subscription
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Fetch mock data for demonstration
   useEffect(() => {
-    // Only load mock data after authentication is initialized and we have a user
-    if (authInitialized && user) {
+    // Load mock doctors, patients, and appointments
+    if (user) {
+      // For demonstration, we'll use mock data
+      // In a real app, these would come from Supabase queries
       loadMockData();
     }
-  }, [authInitialized, user]);
+  }, [user]);
 
   const loadMockData = () => {
     // Mock data for demonstration
@@ -219,15 +196,13 @@ export const AuthProvider = ({
       // If it's a doctor, fetch additional doctor details
       let doctorDetails = null;
       if (profileData.role === 'doctor') {
-        const { data: doctorData, error: doctorError } = await supabase
+        const { data: doctorData } = await supabase
           .from('doctor_details')
           .select('*')
           .eq('id', userId)
           .single();
         
-        if (!doctorError) {
-          doctorDetails = doctorData;
-        }
+        doctorDetails = doctorData;
       }
 
       // Create user object matching the User type
@@ -242,18 +217,14 @@ export const AuthProvider = ({
       };
 
       setUser(userProfile);
-      return userProfile;
     } catch (error) {
       console.error('Error fetching user profile:', error);
       toast.error('Failed to load user profile');
-      throw error;
     }
   };
 
   const login = async (email: string, password: string) => {
     try {
-      setIsLoading(true);
-      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -261,23 +232,31 @@ export const AuthProvider = ({
 
       if (error) {
         toast.error(error.message);
-        setIsLoading(false);
         throw error;
       }
 
       if (!data.user) {
-        setIsLoading(false);
         throw new Error('Login failed');
       }
 
-      try {
-        // Fetch the user profile to get role information
-        const userProfile = await fetchUserProfile(data.user.id);
-        setIsLoading(false);
-        return userProfile;
-      } catch (profileError) {
-        // If profile fetch fails, return minimal user info
-        setIsLoading(false);
+      // Fetch the user profile after login
+      await fetchUserProfile(data.user.id);
+      
+      // Get the user profile from state
+      const currentUser = user;
+      
+      // Only redirect if we have a valid user
+      if (currentUser) {
+        // Redirect based on role
+        if (currentUser.role === 'doctor') {
+          navigate('/doctor/dashboard');
+        } else {
+          navigate('/patient/dashboard');
+        }
+        
+        return currentUser;
+      } else {
+        // If user profile is not available yet, create a minimal user object
         const minimalUser: User = {
           id: data.user.id,
           name: data.user.user_metadata?.name || email.split('@')[0], // Fallback name
@@ -285,27 +264,20 @@ export const AuthProvider = ({
           role: (data.user.user_metadata?.role as UserRole) || 'patient',
           phoneNumber: data.user.user_metadata?.phoneNumber || '',
         };
+        
+        setUser(minimalUser);
         return minimalUser;
       }
     } catch (error) {
-      setIsLoading(false);
       console.error("Login error:", error);
       throw error;
     }
   };
 
   const logout = async () => {
-    setIsLoading(true);
-    try {
-      await supabase.auth.signOut();
-      setUser(null);
-      navigate('/');
-    } catch (error) {
-      console.error("Logout error:", error);
-      toast.error("Failed to log out");
-    } finally {
-      setIsLoading(false);
-    }
+    await supabase.auth.signOut();
+    setUser(null);
+    navigate('/');
   };
 
   const signupPatient = async (
@@ -481,13 +453,7 @@ export const AuthProvider = ({
         addPrescription
       }}
     >
-      {isLoading ? (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <p className="text-lg text-gray-600">Loading...</p>
-        </div>
-      ) : (
-        children
-      )}
+      {children}
     </AuthContext.Provider>
   );
 };

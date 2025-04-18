@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -110,10 +111,11 @@ export const DoctorFormFields: React.FC<DoctorFormFieldsProps> = ({
           value={hospitalKey}
           onChange={(e) => setHospitalKey(e.target.value)}
           required
+          placeholder="Enter 1234"
           maxLength={4}
         />
         <p className="text-xs text-gray-500">
-          Contact hospital administration for your registration key
+          Hospital key (1234) required for verification
         </p>
       </div>
     </>
