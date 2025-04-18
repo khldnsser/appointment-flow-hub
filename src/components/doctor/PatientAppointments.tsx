@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { User } from "@/types/auth";
-import AddMedicalRecordDialog from "./AddMedicalRecordDialog";
+import MedicalRecordDialog from "./MedicalRecordDialog";
 
 interface PatientAppointmentsProps {
   patient: User;
@@ -83,7 +83,7 @@ const PatientAppointments = ({ patient }: PatientAppointmentsProps) => {
       </CardContent>
 
       {user && (
-        <AddMedicalRecordDialog
+        <MedicalRecordDialog
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
           patientId={patient.id}

@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, Appointment } from "../types/auth";
 import { MOCK_DOCTORS, MOCK_PATIENTS, MOCK_APPOINTMENTS } from "../data/mockData";
@@ -80,12 +81,12 @@ const AuthContext = createContext<{
   doctors: MOCK_DOCTORS,
   patients: MOCK_PATIENTS,
   appointments: MOCK_APPOINTMENTS,
-  login: () => Promise.resolve(null),
+  login: () => Promise.resolve(null as any),
   logout: () => {},
-  signupDoctor: () => Promise.resolve(null),
-  signupPatient: () => Promise.resolve(null),
-  createAppointment: () => ({ id: "" }),
-  updateAppointment: () => ({ id: "" }),
+  signupDoctor: () => Promise.resolve(null as any),
+  signupPatient: () => Promise.resolve(null as any),
+  createAppointment: () => ({} as Appointment),
+  updateAppointment: () => ({} as Appointment),
   cancelAppointment: () => {},
   completeAppointment: () => {},
   addMedicalRecord: () => {},
