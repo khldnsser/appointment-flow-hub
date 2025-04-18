@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -29,7 +30,7 @@ const MedicalRecordDialog = ({
   existingRecord,
   mode = 'create'
 }: MedicalRecordDialogProps) => {
-  const { addMedicalRecord, updateMedicalRecord, completeAppointment } = useAuth();
+  const { addMedicalRecord, updateMedicalRecord, completeAppointment, user } = useAuth();
   
   const [formData, setFormData] = useState<{
     subjective: string;
@@ -76,6 +77,7 @@ const MedicalRecordDialog = ({
     const soapNote: SOAPNote = {
       appointmentId,
       doctorName,
+      doctorId: user?.id || '',  // Add the doctorId field
       ...formData
     };
     

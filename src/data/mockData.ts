@@ -1,4 +1,3 @@
-
 import { User, Appointment } from "../types/auth";
 
 export const MOCK_DOCTORS: User[] = [
@@ -44,6 +43,7 @@ export const MOCK_PATIENTS: User[] = [
         date: new Date(2025, 2, 15),
         appointmentId: "app1",
         doctorName: "Dr. Sarah Johnson",
+        doctorId: "doc1",
         subjective: "Patient reports seasonal allergies with congestion and sneezing.",
         objective: "Clear lungs, mild nasal inflammation, no fever.",
         assessment: "Seasonal allergic rhinitis.",
