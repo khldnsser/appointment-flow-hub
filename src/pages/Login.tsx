@@ -17,12 +17,20 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      toast.error("Please enter both email and password");
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
       const user = await login(email, password);
+      
       if (user) {
         toast.success(`Welcome back, ${user.name}!`);
+        
         // Immediately navigate based on user role
         if (user.role === 'doctor') {
           navigate('/doctor/dashboard');
@@ -33,7 +41,8 @@ const Login = () => {
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Login failed. Please check your credentials.");
-    } finally {
+      
+      // Make sure to reset loading state even when there's an error
       setIsLoading(false);
     }
   };

@@ -226,9 +226,9 @@ export const AuthProvider = ({
 
       await fetchUserProfile(data.user.id);
       
-      const currentUser = user;
-      
-      if (!currentUser) {
+      if (user) {
+        return user;
+      } else {
         const minimalUser: User = {
           id: data.user.id,
           name: data.user.user_metadata?.name || email.split('@')[0],
@@ -240,8 +240,6 @@ export const AuthProvider = ({
         setUser(minimalUser);
         return minimalUser;
       }
-      
-      return currentUser;
     } catch (error) {
       console.error("Login error:", error);
       throw error;
