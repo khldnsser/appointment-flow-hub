@@ -1,5 +1,5 @@
 
-import { Appointment, SOAPNote, User } from "@/types/auth";
+import { Appointment, User } from "@/types/auth";
 import { toast } from "@/components/ui/sonner";
 
 export const createAppointment = (
@@ -33,7 +33,7 @@ export const completeAppointment = (
   setAppointments: (appointments: Appointment[]) => void,
   appointmentId: string
 ) => {
-  setAppointments(
+  setAppointments(.
     appointments.map(apt => 
       apt.id === appointmentId ? { ...apt, status: "completed" } : apt
     )

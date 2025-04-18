@@ -1,11 +1,22 @@
+
 export type UserRole = "doctor" | "patient";
+
+export interface SOAPNote {
+  appointmentId: string;
+  doctorName: string;
+  doctorId: string;
+  subjective: string;
+  objective: string;
+  assessment: string;
+  plan: string;
+}
 
 export interface MedicalRecord {
   id: string;
   date: Date;
   appointmentId: string;
   doctorName: string;
-  doctorId: string;  // Added this field
+  doctorId: string;
   subjective: string;
   objective: string;
   assessment: string;
