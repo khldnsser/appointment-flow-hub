@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -28,11 +28,24 @@ const PatientLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!user || user.role !== "patient") {
-    navigate("/login");
-    return null;
+  useEffect(() => {
+    // Check if user is loaded
+    if (user !== undefined) {
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  // This layout should only be rendered for authenticated patients
+  // The App.tsx ProtectedRoute component handles redirection
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-medblue-500"></div>
+      </div>
+    );
   }
 
   const handleLogout = () => {
@@ -97,12 +110,12 @@ const PatientLayout = () => {
               <Avatar className="h-10 w-10 mr-3">
                 <AvatarImage src="" />
                 <AvatarFallback className="bg-medteal-200 text-medteal-800">
-                  {user?.name.split(" ").map(n => n[0]).join("")}
+                  {user?.name?.split(" ").map(n => n[0]).join("") || "P"}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-medium text-sm">{user?.name}</p>
-                <p className="text-xs text-gray-500">{user?.email}</p>
+                <p className="font-medium text-sm">{user?.name || "Patient"}</p>
+                <p className="text-xs text-gray-500">{user?.email || "Email not available"}</p>
               </div>
             </div>
             <nav className="space-y-1">
@@ -149,12 +162,12 @@ const PatientLayout = () => {
                 <Avatar className="h-10 w-10 mr-3">
                   <AvatarImage src="" />
                   <AvatarFallback className="bg-medteal-200 text-medteal-800">
-                    {user?.name.split(" ").map(n => n[0]).join("")}
+                    {user?.name?.split(" ").map(n => n[0]).join("") || "P"}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-medium text-sm">{user?.name}</p>
-                  <p className="text-xs text-gray-500">{user?.email}</p>
+                  <p className="font-medium text-sm">{user?.name || "Patient"}</p>
+                  <p className="text-xs text-gray-500">{user?.email || "Email not available"}</p>
                 </div>
               </div>
             </div>
@@ -205,7 +218,7 @@ const PatientLayout = () => {
                   <Avatar className="h-8 w-8">
                     <AvatarImage src="" />
                     <AvatarFallback className="bg-medteal-200 text-medteal-800">
-                      {user?.name.split(" ").map(n => n[0]).join("")}
+                      {user?.name?.split(" ").map(n => n[0]).join("") || "P"}
                     </AvatarFallback>
                   </Avatar>
                 </Button>

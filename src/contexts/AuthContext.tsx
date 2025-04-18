@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useNavigate, NavigateFunction } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Appointment, MedicalRecord, UserRole } from "@/types/auth";
 import { toast } from "@/components/ui/sonner";
@@ -24,7 +23,6 @@ type AuthContextType = {
     licenseNumber: string,
     hospitalKey: string
   ) => Promise<User>;
-  // Add missing properties needed by components
   appointments: Appointment[];
   doctors: User[];
   patients: User[];
@@ -36,7 +34,6 @@ type AuthContextType = {
   addPrescription: (appointmentId: string, prescription: string) => void;
 };
 
-// Default context value with empty implementations
 const defaultContextValue: AuthContextType = {
   user: null,
   login: () => Promise.reject("Not initialized"),
@@ -56,66 +53,67 @@ const defaultContextValue: AuthContextType = {
 
 const AuthContext = createContext<AuthContextType>(defaultContextValue);
 
-// Create a wrapper component that doesn't use useNavigate
-export const AuthProviderWrapper = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <AuthProvider navigate={() => {}}>{children}</AuthProvider>
-  );
-};
-
-// Modified AuthProvider that accepts navigate as a prop
 export const AuthProvider = ({ 
   children, 
   navigate 
 }: { 
   children: React.ReactNode;
-  navigate: NavigateFunction | (() => void);
+  navigate: Function | (() => void);
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [doctors, setDoctors] = useState<User[]>([]);
   const [patients, setPatients] = useState<User[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // Check initial session
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        await fetchUserProfile(session.user.id);
-      }
-    };
-
-    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.id);
         if (event === 'SIGNED_IN' && session) {
-          await fetchUserProfile(session.user.id);
+          try {
+            const userData = await fetchUserProfile(session.user.id);
+            setUser(userData);
+          } catch (error) {
+            console.error("Error fetching user profile:", error);
+          }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
         }
       }
     );
 
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log("Initial session check:", session?.user?.id);
+        
+        if (session?.user) {
+          const userData = await fetchUserProfile(session.user.id);
+          setUser(userData);
+        }
+      } catch (error) {
+        console.error("Session check error:", error);
+      } finally {
+        setIsInitialized(true);
+      }
+    };
+
     checkSession();
 
-    // Cleanup subscription
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
-  // Fetch mock data for demonstration
   useEffect(() => {
-    // Load mock doctors, patients, and appointments
     if (user) {
-      // For demonstration, we'll use mock data
-      // In a real app, these would come from Supabase queries
+      console.log("Loading mock data for user:", user.id);
       loadMockData();
     }
   }, [user]);
 
   const loadMockData = () => {
-    // Mock data for demonstration
     const mockDoctors: User[] = [
       {
         id: "doctor1",
@@ -182,102 +180,100 @@ export const AuthProvider = ({
     setAppointments(mockAppointments);
   };
 
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = async (userId: string): Promise<User> => {
     try {
-      // Fetch user profile from the profiles table
+      console.log("Fetching profile for user ID:", userId);
+      
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Profile fetch error:", profileError);
+        throw profileError;
+      }
 
-      // If it's a doctor, fetch additional doctor details
+      console.log("Profile data retrieved:", profileData);
+
       let doctorDetails = null;
       if (profileData.role === 'doctor') {
-        const { data: doctorData } = await supabase
+        const { data: doctorData, error: doctorError } = await supabase
           .from('doctor_details')
           .select('*')
           .eq('id', userId)
           .single();
         
-        doctorDetails = doctorData;
+        if (doctorError) {
+          console.error("Doctor details fetch error:", doctorError);
+        } else {
+          doctorDetails = doctorData;
+          console.log("Doctor details retrieved:", doctorDetails);
+        }
       }
 
-      // Create user object matching the User type
       const userProfile: User = {
         id: profileData.id,
         name: profileData.name,
         email: profileData.email,
-        role: profileData.role as UserRole, // Cast to UserRole type
+        role: profileData.role as UserRole,
         phoneNumber: profileData.phone_number,
         specialization: doctorDetails?.specialization,
         licenseNumber: doctorDetails?.license_number,
       };
 
-      setUser(userProfile);
+      return userProfile;
     } catch (error) {
       console.error('Error fetching user profile:', error);
       toast.error('Failed to load user profile');
+      throw error;
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<User> => {
     try {
+      console.log("Login attempt for:", email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
+        console.error("Supabase auth error:", error);
         toast.error(error.message);
         throw error;
       }
 
       if (!data.user) {
+        console.error("No user returned from login");
         throw new Error('Login failed');
       }
-
-      // Fetch the user profile after login
-      await fetchUserProfile(data.user.id);
       
-      // Get the user profile from state
-      const currentUser = user;
+      console.log("Supabase auth successful, user ID:", data.user.id);
       
-      // Only redirect if we have a valid user
-      if (currentUser) {
-        // Redirect based on role
-        if (currentUser.role === 'doctor') {
-          navigate('/doctor/dashboard');
-        } else {
-          navigate('/patient/dashboard');
-        }
-        
-        return currentUser;
-      } else {
-        // If user profile is not available yet, create a minimal user object
-        const minimalUser: User = {
-          id: data.user.id,
-          name: data.user.user_metadata?.name || email.split('@')[0], // Fallback name
-          email: email,
-          role: (data.user.user_metadata?.role as UserRole) || 'patient',
-          phoneNumber: data.user.user_metadata?.phoneNumber || '',
-        };
-        
-        setUser(minimalUser);
-        return minimalUser;
-      }
+      const userProfile = await fetchUserProfile(data.user.id);
+      console.log("User profile fetched:", userProfile);
+      
+      return userProfile;
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Login function error:", error);
       throw error;
     }
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    navigate('/');
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      if (typeof navigate === 'function') {
+        navigate('/');
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Failed to log out");
+    }
   };
 
   const signupPatient = async (
@@ -285,34 +281,50 @@ export const AuthProvider = ({
     email: string, 
     phoneNumber: string, 
     password: string
-  ) => {
-    // Signup with Supabase
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name,
-          email,
-          phoneNumber,
-          role: 'patient',
+  ): Promise<User> => {
+    try {
+      console.log("Patient signup attempt for:", email);
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            email,
+            phoneNumber,
+            role: 'patient',
+          }
         }
-      }
-    });
+      });
 
-    if (error) {
-      toast.error(error.message);
+      if (error) {
+        console.error("Signup error:", error);
+        toast.error(error.message);
+        throw error;
+      }
+
+      if (!data.user) {
+        console.error("No user returned from signup");
+        throw new Error('Signup failed');
+      }
+      
+      console.log("Signup successful, user ID:", data.user.id);
+      
+      const newUser: User = {
+        id: data.user.id,
+        name: name,
+        email: email,
+        role: 'patient',
+        phoneNumber: phoneNumber,
+        medicalRecords: [],
+      };
+      
+      return newUser;
+    } catch (error) {
+      console.error("Patient signup error:", error);
       throw error;
     }
-
-    if (!data.user) {
-      throw new Error('Signup failed');
-    }
-
-    // Automatically navigate to patient dashboard
-    navigate('/patient/dashboard');
-
-    return user as User;
   };
 
   const signupDoctor = async (
@@ -323,44 +335,59 @@ export const AuthProvider = ({
     specialization: string,
     licenseNumber: string,
     hospitalKey: string
-  ) => {
-    // Validate hospital key (you might want to implement a more secure check)
-    if (hospitalKey !== '1234') {
-      throw new Error('Invalid hospital key');
-    }
-
-    // Signup with Supabase
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name,
-          email,
-          phoneNumber,
-          role: 'doctor',
-          specialization,
-          licenseNumber,
-        }
+  ): Promise<User> => {
+    try {
+      console.log("Doctor signup attempt for:", email);
+      
+      if (hospitalKey !== '1234') {
+        throw new Error('Invalid hospital key');
       }
-    });
 
-    if (error) {
-      toast.error(error.message);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            email,
+            phoneNumber,
+            role: 'doctor',
+            specialization,
+            licenseNumber,
+          }
+        }
+      });
+
+      if (error) {
+        console.error("Doctor signup error:", error);
+        toast.error(error.message);
+        throw error;
+      }
+
+      if (!data.user) {
+        console.error("No user returned from doctor signup");
+        throw new Error('Signup failed');
+      }
+      
+      console.log("Doctor signup successful, user ID:", data.user.id);
+      
+      const newUser: User = {
+        id: data.user.id,
+        name: name,
+        email: email,
+        role: 'doctor',
+        phoneNumber: phoneNumber,
+        specialization: specialization,
+        licenseNumber: licenseNumber,
+      };
+      
+      return newUser;
+    } catch (error) {
+      console.error("Doctor signup error:", error);
       throw error;
     }
-
-    if (!data.user) {
-      throw new Error('Signup failed');
-    }
-
-    // Automatically navigate to doctor dashboard
-    navigate('/doctor/dashboard');
-
-    return user as User;
   };
 
-  // Implementation of the additional methods
   const createAppointment = (appointmentData: Omit<Appointment, "id">) => {
     const newAppointment: Appointment = {
       ...appointmentData,
@@ -455,6 +482,12 @@ export const AuthProvider = ({
     >
       {children}
     </AuthContext.Provider>
+  );
+};
+
+export const AuthProviderWrapper = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <AuthProvider navigate={() => {}}>{children}</AuthProvider>
   );
 };
 

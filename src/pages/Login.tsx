@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -11,18 +12,27 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
+  
+  // If user is already logged in, redirect them
+  useEffect(() => {
+    if (user) {
+      const destination = user.role === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard';
+      navigate(destination);
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const user = await login(email, password);
-      if (user) {
-        toast.success(`Welcome back, ${user.name}!`);
-      }
+      console.log("Attempting login with:", email);
+      const userData = await login(email, password);
+      console.log("Login successful, user data:", userData);
+      
+      // Let the useEffect handle navigation based on user role
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Login failed. Please check your credentials.");
