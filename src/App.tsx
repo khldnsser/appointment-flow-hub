@@ -26,6 +26,7 @@ import PatientDashboard from "./pages/patient/PatientDashboard";
 import FindDoctors from "./pages/patient/FindDoctors";
 import BookAppointment from "./pages/patient/BookAppointment";
 import MedicalRecords from "./pages/patient/MedicalRecords";
+import SymptomCheckerPage from "./pages/patient/SymptomCheckerPage";
 
 const queryClient = new QueryClient();
 
@@ -56,7 +57,7 @@ const App = () => (
               <Route path="dashboard" element={<PatientDashboard />} />
               <Route path="find-doctors" element={<FindDoctors />} />
               <Route path="book-appointment" element={<BookAppointment />} />
-              <Route path="symptoms" element={<div>Symptom Checker (Coming Soon)</div>} />
+              <Route path="symptoms" element={<SymptomCheckerPage />} />
               <Route path="records" element={<MedicalRecords />} />
               <Route path="profile" element={<div>Profile (Coming Soon)</div>} />
             </Route>
