@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
@@ -6,58 +7,65 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%; /* White background */
-    --foreground: 240 10% 3.9%; /* Very dark grey text */
-    
-    --card: 0 0% 100%; /* White cards */
-    --card-foreground: 240 10% 3.9%;
-    
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    
-    --primary: 240 5.9% 10%; /* Dark grey for primary elements */
-    --primary-foreground: 0 0% 98%;
-    
-    --secondary: 240 4.8% 95.9%; /* Very light grey for secondary elements */
-    --secondary-foreground: 240 5.9% 10%;
-    
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 195 83% 38%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 199 89% 48%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 173 80% 40%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
-    
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 195 83% 38%;
+
     --radius: 0.5rem;
   }
 
   .dark {
-    /* Use the same light theme colors to ensure consistency */
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 195 83% 38%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 199 89% 48%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 173 80% 40%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 195 83% 38%;
   }
 }
 
@@ -74,15 +82,15 @@
 
 /* Custom classes */
 .card-hover {
-  @apply transition-all hover:shadow-lg hover:-translate-y-1 bg-white;
+  @apply transition-all hover:shadow-lg hover:-translate-y-1;
 }
 
 .calendar-day {
-  @apply border border-border p-2 rounded min-h-[100px] bg-gray-50;
+  @apply border border-border p-2 rounded min-h-[100px];
 }
 
 .calendar-event {
-  @apply bg-gray-100 border-l-4 border-gray-300 p-2 rounded text-sm my-1 cursor-pointer;
+  @apply bg-medblue-100 border-l-4 border-medblue-600 p-2 rounded text-sm my-1 cursor-pointer;
 }
 
 .doctor-card {
@@ -90,5 +98,5 @@
 }
 
 .med-button {
-  @apply bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-all;
+  @apply bg-medteal-600 text-white px-4 py-2 rounded-md hover:bg-medteal-700 transition-all;
 }
