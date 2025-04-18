@@ -65,7 +65,7 @@ const DoctorSchedule = ({
                     className={cn(
                       "p-2 text-sm rounded-md text-center",
                       isAvailable
-                        ? "hover:bg-medteal-100 border border-medteal-200",
+                        ? "hover:bg-medteal-100 border border-medteal-200"
                         : "bg-gray-100 text-gray-400 cursor-not-allowed",
                       selectedTime === time && "bg-medteal-200 border-medteal-300"
                     )}
