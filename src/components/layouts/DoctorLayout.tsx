@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -46,12 +45,7 @@ const DoctorLayout = () => {
       icon: <Calendar className="w-5 h-5 mr-2" />,
     },
     {
-      name: "Patients",
-      path: "/doctor/patients",
-      icon: <Users className="w-5 h-5 mr-2" />,
-    },
-    {
-      name: "Medical Records",
+      name: "Patient Records",
       path: "/doctor/records",
       icon: <ClipboardList className="w-5 h-5 mr-2" />,
     },
@@ -131,7 +125,6 @@ const DoctorLayout = () => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      {/* Sidebar - Desktop */}
       <div className="hidden md:flex md:flex-shrink-0">
         <div className="flex flex-col w-64 bg-white border-r">
           <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
@@ -181,17 +174,13 @@ const DoctorLayout = () => {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Top Navigation */}
         <div className="flex items-center justify-between h-16 bg-white border-b px-4">
-          {/* Mobile Nav */}
           <div className="flex items-center">
             <MobileNavigation />
             <h1 className="text-xl font-bold text-medblue-800 md:hidden ml-2">MediTrack</h1>
           </div>
 
-          {/* User Menu - Mobile & Desktop */}
           <div className="flex items-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -216,7 +205,6 @@ const DoctorLayout = () => {
           </div>
         </div>
 
-        {/* Page Content */}
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
           <Outlet />
         </main>
