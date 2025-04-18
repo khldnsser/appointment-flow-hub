@@ -10,11 +10,12 @@ const BookAppointment = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const doctorId = searchParams.get("doctorId");
-  const { doctors, user, createAppointment } = useAuth();
+  const { doctors, user, createAppointment, appointments } = useAuth();
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState<string>();
 
   const doctor = doctors.find((d) => d.id === doctorId);
+  const doctorAppointments = appointments.filter(apt => apt.doctorId === doctorId);
 
   if (!doctor) {
     return (
@@ -57,6 +58,7 @@ const BookAppointment = () => {
         onDateSelect={setSelectedDate}
         onTimeSelect={setSelectedTime}
         onSubmit={handleBookAppointment}
+        appointments={doctorAppointments}
       />
     </div>
   );
