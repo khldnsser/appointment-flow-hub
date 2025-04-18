@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FilePlus, PenLine, Calendar, User } from "lucide-react";
+import { FilePlus, PenLine, Calendar, User as UserIcon } from "lucide-react";
 import { format } from "date-fns";
 import { MedicalRecord, User } from "@/types/auth";
 import MedicalRecordDialog from "./MedicalRecordDialog";
@@ -70,7 +70,7 @@ const PatientMedicalRecords = ({ patient }: PatientMedicalRecordsProps) => {
                           </CardTitle>
                         </div>
                         <div className="flex items-center gap-2 text-muted-foreground">
-                          <User className="h-4 w-4" />
+                          <UserIcon className="h-4 w-4" />
                           <p className="text-sm">
                             By {record.doctorName}
                           </p>
