@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 // Define user types
@@ -297,12 +296,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Appointment functions
   const createAppointment = (appointmentData: Omit<Appointment, "id">) => {
-    const newAppointment: Appointment = {
-      ...appointmentData,
-      id: `app${appointments.length + 1}`,
-    };
-    setAppointments([...appointments, newAppointment]);
-    return newAppointment;
+    // Check if there's already an active appointment between this doctor and patient
+    const existingAppointment = appointments.find(
+      (app) => 
+        app.doctorId === appointmentData.doctorId && 
+        app.patientId === appointmentData.patientId && 
+        app.status === "scheduled"
+    );
+    
+    if (existingAppointment) {
+      // Cancel the existing appointment
+      const updatedAppointments = appointments.map((app) =>
+        app.id === existingAppointment.id ? { ...app, status: "cancelled" as const } : app
+      );
+      
+      // Create the new appointment
+      const newAppointment: Appointment = {
+        ...appointmentData,
+        id: `app${appointments.length + 1}`,
+      };
+      
+      setAppointments([...updatedAppointments, newAppointment]);
+      return newAppointment;
+    } else {
+      // Create a new appointment as before
+      const newAppointment: Appointment = {
+        ...appointmentData,
+        id: `app${appointments.length + 1}`,
+      };
+      setAppointments([...appointments, newAppointment]);
+      return newAppointment;
+    }
   };
 
   const updateAppointment = (updatedAppointment: Appointment) => {

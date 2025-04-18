@@ -9,17 +9,32 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+// Define the Doctor interface with the missing properties
+interface Doctor {
+  id: string;
+  name: string;
+  email: string;
+  role: "doctor";
+  phoneNumber: string;
+  specialty: string;
+  hospital?: string;
+  experience?: number;
+}
+
 const FindDoctors = () => {
   const navigate = useNavigate();
   const { doctors } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [specialty, setSpecialty] = useState("all");
 
+  // Cast doctors to Doctor[] to ensure TypeScript recognizes the specialty property
+  const doctorsWithSpecialty = doctors as Doctor[];
+
   const specialties = Array.from(
-    new Set(doctors.map((doctor) => doctor.specialty))
+    new Set(doctorsWithSpecialty.map((doctor) => doctor.specialty))
   ).sort();
 
-  const filteredDoctors = doctors.filter((doctor) => {
+  const filteredDoctors = doctorsWithSpecialty.filter((doctor) => {
     const matchesSearch = doctor.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
