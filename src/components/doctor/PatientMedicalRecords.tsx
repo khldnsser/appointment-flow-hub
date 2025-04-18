@@ -35,6 +35,10 @@ const PatientMedicalRecords = ({ patient }: PatientMedicalRecordsProps) => {
     setIsDialogOpen(true);
   };
 
+  const canEditRecord = (record: MedicalRecord) => {
+    return user?.id === record.doctorId;
+  };
+
   return (
     <Card key={refreshKey}>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -66,15 +70,17 @@ const PatientMedicalRecords = ({ patient }: PatientMedicalRecordsProps) => {
                           By {record.doctorName}
                         </p>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditClick(record)}
-                        className="flex items-center gap-2"
-                      >
-                        <PenLine className="h-4 w-4" />
-                        Edit
-                      </Button>
+                      {canEditRecord(record) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditClick(record)}
+                          className="flex items-center gap-2"
+                        >
+                          <PenLine className="h-4 w-4" />
+                          Edit
+                        </Button>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent>

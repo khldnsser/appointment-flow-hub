@@ -4,6 +4,7 @@ import { User, MedicalRecord } from "../types/auth";
 export interface SOAPNote {
   appointmentId: string;
   doctorName: string;
+  doctorId: string;  // Added this field
   subjective: string;
   objective: string;
   assessment: string;
@@ -22,6 +23,7 @@ export const addNewMedicalRecord = (
         date: new Date(),
         appointmentId: soapNote.appointmentId,
         doctorName: soapNote.doctorName,
+        doctorId: soapNote.doctorId,  // Include doctorId in the new record
         subjective: soapNote.subjective,
         objective: soapNote.objective,
         assessment: soapNote.assessment,

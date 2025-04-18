@@ -6,6 +6,7 @@ export interface MedicalRecord {
   date: Date;
   appointmentId: string;
   doctorName: string;
+  doctorId: string;  // Added this field
   subjective: string;
   objective: string;
   assessment: string;
