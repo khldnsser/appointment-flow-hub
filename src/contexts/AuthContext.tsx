@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate, NavigateFunction } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -225,30 +224,54 @@ export const AuthProvider = ({
   };
 
   const login = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      toast.error(error.message);
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+
+      if (!data.user) {
+        throw new Error('Login failed');
+      }
+
+      // Fetch the user profile after login
+      await fetchUserProfile(data.user.id);
+      
+      // Get the user profile from state
+      const currentUser = user;
+      
+      // Only redirect if we have a valid user
+      if (currentUser) {
+        // Redirect based on role
+        if (currentUser.role === 'doctor') {
+          navigate('/doctor/dashboard');
+        } else {
+          navigate('/patient/dashboard');
+        }
+        
+        return currentUser;
+      } else {
+        // If user profile is not available yet, create a minimal user object
+        const minimalUser: User = {
+          id: data.user.id,
+          name: data.user.user_metadata?.name || email.split('@')[0], // Fallback name
+          email: email,
+          role: (data.user.user_metadata?.role as UserRole) || 'patient',
+          phoneNumber: data.user.user_metadata?.phoneNumber || '',
+        };
+        
+        setUser(minimalUser);
+        return minimalUser;
+      }
+    } catch (error) {
+      console.error("Login error:", error);
       throw error;
     }
-
-    if (!data.user) {
-      throw new Error('Login failed');
-    }
-
-    await fetchUserProfile(data.user.id);
-    
-    // Redirect based on role
-    if (user?.role === 'doctor') {
-      navigate('/doctor/dashboard');
-    } else {
-      navigate('/patient/dashboard');
-    }
-
-    return user as User;
   };
 
   const logout = async () => {

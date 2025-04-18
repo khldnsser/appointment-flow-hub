@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,17 +20,12 @@ const Login = () => {
 
     try {
       const user = await login(email, password);
-      toast.success(`Welcome back, ${user.name}!`);
-      
-      // Redirect based on user role
-      if (user.role === "doctor") {
-        navigate("/doctor/dashboard");
-      } else {
-        navigate("/patient/dashboard");
+      if (user) {
+        toast.success(`Welcome back, ${user.name}!`);
       }
     } catch (error) {
-      toast.error("Login failed. Please check your credentials.");
       console.error("Login error:", error);
+      toast.error("Login failed. Please check your credentials.");
     } finally {
       setIsLoading(false);
     }
