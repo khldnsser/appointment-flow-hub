@@ -75,13 +75,20 @@ export const AuthProvider = ({
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [doctors, setDoctors] = useState<User[]>([]);
   const [patients, setPatients] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Check initial session
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        await fetchUserProfile(session.user.id);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          await fetchUserProfile(session.user.id);
+        }
+      } catch (error) {
+        console.error("Session check error:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -89,9 +96,17 @@ export const AuthProvider = ({
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' && session) {
-          await fetchUserProfile(session.user.id);
+          setIsLoading(true);
+          try {
+            await fetchUserProfile(session.user.id);
+          } catch (error) {
+            console.error("Auth state change error:", error);
+          } finally {
+            setIsLoading(false);
+          }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
+          setIsLoading(false);
         }
       }
     );
@@ -239,35 +254,18 @@ export const AuthProvider = ({
         throw new Error('Login failed');
       }
 
-      // Fetch the user profile after login
-      await fetchUserProfile(data.user.id);
+      // User object will be set by the onAuthStateChange listener
+      // Return a minimal user object for immediate feedback
+      const minimalUser: User = {
+        id: data.user.id,
+        name: data.user.user_metadata?.name || email.split('@')[0], // Fallback name
+        email: email,
+        role: (data.user.user_metadata?.role as UserRole) || 'patient',
+        phoneNumber: data.user.user_metadata?.phoneNumber || '',
+      };
       
-      // Get the user profile from state
-      const currentUser = user;
-      
-      // Only redirect if we have a valid user
-      if (currentUser) {
-        // Redirect based on role
-        if (currentUser.role === 'doctor') {
-          navigate('/doctor/dashboard');
-        } else {
-          navigate('/patient/dashboard');
-        }
-        
-        return currentUser;
-      } else {
-        // If user profile is not available yet, create a minimal user object
-        const minimalUser: User = {
-          id: data.user.id,
-          name: data.user.user_metadata?.name || email.split('@')[0], // Fallback name
-          email: email,
-          role: (data.user.user_metadata?.role as UserRole) || 'patient',
-          phoneNumber: data.user.user_metadata?.phoneNumber || '',
-        };
-        
-        setUser(minimalUser);
-        return minimalUser;
-      }
+      // Navigation will happen in the component based on user state from context
+      return minimalUser;
     } catch (error) {
       console.error("Login error:", error);
       throw error;
@@ -453,7 +451,13 @@ export const AuthProvider = ({
         addPrescription
       }}
     >
-      {children}
+      {isLoading ? (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <p className="text-lg text-gray-600">Loading...</p>
+        </div>
+      ) : (
+        children
+      )}
     </AuthContext.Provider>
   );
 };

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -11,22 +12,45 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
+
+  // Check if already logged in
+  useEffect(() => {
+    if (user) {
+      // Redirect based on user role
+      if (user.role === 'doctor') {
+        navigate('/doctor/dashboard');
+      } else {
+        navigate('/patient/dashboard');
+      }
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      toast.error("Please provide both email and password");
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
       const user = await login(email, password);
+      
       if (user) {
         toast.success(`Welcome back, ${user.name}!`);
+        // Navigation will be handled by the useEffect above when user state updates
+      } else {
+        // Handle the case where login doesn't throw an error but also doesn't return a user
+        toast.error("Login failed. Please try again.");
+        setIsLoading(false);
       }
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Login failed. Please check your credentials.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -58,6 +82,7 @@ const Login = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   className="w-full"
+                  disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -69,6 +94,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="w-full"
+                  disabled={isLoading}
                 />
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
