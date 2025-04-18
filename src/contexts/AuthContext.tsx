@@ -12,8 +12,9 @@ import {
   handleCreateAppointment,
   handleUpdateAppointment,
   handleCancelAppointment,
+  handleCompleteAppointment,
 } from "../services/appointmentService";
-import { addNewMedicalRecord } from "../services/medicalRecordService";
+import { addNewMedicalRecord, SOAPNote } from "../services/medicalRecordService";
 
 type AuthContextType = {
   user: User | null;
@@ -40,7 +41,8 @@ type AuthContextType = {
   createAppointment: (appointment: Omit<Appointment, "id">) => Appointment;
   updateAppointment: (appointment: Appointment) => Appointment;
   cancelAppointment: (appointmentId: string) => void;
-  addMedicalRecord: (patientId: string, content: string) => void;
+  completeAppointment: (appointmentId: string) => void;
+  addMedicalRecord: (patientId: string, soapNote: SOAPNote) => void;
   addPrescription: (appointmentId: string, prescription: string) => void;
 };
 
@@ -143,8 +145,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setAppointments(updatedAppointments);
   };
 
-  const addMedicalRecord = (patientId: string, content: string) => {
-    const updatedPatients = addNewMedicalRecord(patientId, content, patients);
+  const completeAppointment = (appointmentId: string) => {
+    const updatedAppointments = handleCompleteAppointment(appointmentId, appointments);
+    setAppointments(updatedAppointments);
+  };
+
+  const addMedicalRecord = (patientId: string, soapNote: SOAPNote) => {
+    const updatedPatients = addNewMedicalRecord(patientId, soapNote, patients);
     setPatients(updatedPatients);
   };
 
@@ -169,6 +176,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         createAppointment,
         updateAppointment,
         cancelAppointment,
+        completeAppointment,
         addMedicalRecord,
         addPrescription,
       }}

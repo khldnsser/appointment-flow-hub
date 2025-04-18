@@ -42,7 +42,12 @@ export const MOCK_PATIENTS: User[] = [
       {
         id: "rec1",
         date: new Date(2025, 2, 15),
-        content: "Patient presented with symptoms of seasonal allergies. Prescribed antihistamines.",
+        appointmentId: "app1",
+        doctorName: "Dr. Sarah Johnson",
+        subjective: "Patient reports seasonal allergies with congestion and sneezing.",
+        objective: "Clear lungs, mild nasal inflammation, no fever.",
+        assessment: "Seasonal allergic rhinitis.",
+        plan: "Prescribed antihistamines for 14 days, follow-up if symptoms persist.",
       },
     ],
   },
