@@ -1,4 +1,6 @@
+
 import { User } from "../types/auth";
+import { supabase } from "@/integrations/supabase/client";
 
 export const validateHospitalKey = (key: string): boolean => {
   return key === "1234";
