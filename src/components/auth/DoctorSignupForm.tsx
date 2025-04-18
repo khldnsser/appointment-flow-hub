@@ -64,7 +64,11 @@ export const DoctorSignupForm = () => {
       navigate("/doctor/dashboard");
     } catch (error) {
       if (error instanceof Error) {
-        toast.error(error.message);
+        if (error.message.includes('license number') || error.message.includes('email')) {
+          toast.error(error.message);
+        } else {
+          toast.error("An unexpected error occurred during signup");
+        }
       } else {
         toast.error("An unexpected error occurred");
       }
