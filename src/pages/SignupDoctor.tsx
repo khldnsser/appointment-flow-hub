@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
+import PasswordRequirements from "@/components/auth/PasswordRequirements";
 
 const specializations = [
   "Cardiology",
@@ -43,7 +43,6 @@ const SignupDoctor = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate inputs
     if (password !== confirmPassword) {
       toast.error("Passwords do not match");
       return;
@@ -69,10 +68,13 @@ const SignupDoctor = () => {
       return;
     }
     
-    // Validate password complexity
-    const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
-    if (!passwordRegex.test(password)) {
-      toast.error("Password must be at least 8 characters and include at least one uppercase letter and one number");
+    const hasMinLength = password.length >= 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (!hasMinLength || !hasUpperCase || !hasNumber || !hasSpecialChar) {
+      toast.error("Password does not meet all requirements");
       return;
     }
     
@@ -202,11 +204,8 @@ const SignupDoctor = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  minLength={8}
                 />
-                <p className="text-xs text-gray-500">
-                  Must be at least 8 characters long and include a number and uppercase letter
-                </p>
+                <PasswordRequirements password={password} />
               </div>
               
               <div className="space-y-2">
