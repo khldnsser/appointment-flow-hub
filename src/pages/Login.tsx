@@ -12,6 +12,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   const { login, user } = useAuth();
   const navigate = useNavigate();
   
@@ -27,6 +28,7 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setLoginError(null);
 
     try {
       console.log("Attempting login with:", email);
@@ -37,10 +39,18 @@ const Login = () => {
       
       // Navigate based on user role
       const destination = userData.role === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard';
+      console.log("Redirecting to:", destination);
       navigate(destination);
     } catch (error) {
       console.error("Login error:", error);
-      toast.error("Login failed. Please check your credentials.");
+      let errorMessage = "Login failed. Please check your credentials.";
+      
+      if (error instanceof Error) {
+        setLoginError(error.message);
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -86,6 +96,11 @@ const Login = () => {
                   className="w-full"
                 />
               </div>
+              {loginError && (
+                <div className="text-sm text-red-500">
+                  {loginError}
+                </div>
+              )}
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Signing in..." : "Sign In"}
               </Button>
