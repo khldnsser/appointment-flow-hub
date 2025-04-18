@@ -5,6 +5,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Appointment } from "@/types/auth";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DoctorScheduleProps {
   appointments: Appointment[];
@@ -26,9 +27,15 @@ const DoctorSchedule = ({
   onDateSelect,
   onTimeSelect,
 }: DoctorScheduleProps) => {
+  const { appointments: allAppointments, user } = useAuth();
+  
   const isTimeSlotAvailable = (date: Date, time: string) => {
+    if (!date) return false;
+    
     const [hours, minutes] = time.split(":").map(Number);
-    return !appointments.some((apt) => {
+    
+    // Check if doctor has an appointment at this time
+    const doctorHasAppointment = appointments.some((apt) => {
       const aptDate = new Date(apt.dateTime);
       return (
         isSameDay(aptDate, date) &&
@@ -37,6 +44,20 @@ const DoctorSchedule = ({
         apt.status === "scheduled"
       );
     });
+    
+    // Check if patient already has an appointment at this time
+    const patientHasAppointment = user?.role === "patient" && allAppointments.some((apt) => {
+      const aptDate = new Date(apt.dateTime);
+      return (
+        apt.patientId === user.id &&
+        isSameDay(aptDate, date) &&
+        aptDate.getHours() === hours &&
+        aptDate.getMinutes() === minutes &&
+        apt.status === "scheduled"
+      );
+    });
+    
+    return !doctorHasAppointment && !patientHasAppointment;
   };
 
   return (

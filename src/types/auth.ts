@@ -1,6 +1,17 @@
 
 export type UserRole = "doctor" | "patient";
 
+export interface MedicalRecord {
+  id: string;
+  date: Date;
+  appointmentId: string;
+  doctorName: string;
+  subjective: string;
+  objective: string;
+  assessment: string;
+  plan: string;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -11,11 +22,7 @@ export interface User {
   specialization?: string;
   licenseNumber?: string;
   // Patient specific
-  medicalRecords?: Array<{
-    id: string;
-    date: Date;
-    content: string;
-  }>;
+  medicalRecords?: MedicalRecord[];
 }
 
 export interface Appointment {

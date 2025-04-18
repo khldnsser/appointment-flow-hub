@@ -20,11 +20,13 @@ import PatientLayout from "./components/layouts/PatientLayout";
 
 // Doctor pages
 import DoctorDashboard from "./pages/doctor/DoctorDashboard";
+import PatientRecords from "./pages/doctor/PatientRecords";
 
 // Patient pages
 import PatientDashboard from "./pages/patient/PatientDashboard";
 import FindDoctors from "./pages/patient/FindDoctors";
 import BookAppointment from "./pages/patient/BookAppointment";
+import MedicalRecords from "./pages/patient/MedicalRecords";
 
 const queryClient = new QueryClient();
 
@@ -46,8 +48,8 @@ const App = () => (
             {/* Doctor Routes */}
             <Route path="/doctor" element={<DoctorLayout />}>
               <Route path="dashboard" element={<DoctorDashboard />} />
-              <Route path="patients" element={<div>Patients List (Coming Soon)</div>} />
-              <Route path="records" element={<div>Medical Records (Coming Soon)</div>} />
+              <Route path="patients" element={<PatientRecords />} />
+              <Route path="records" element={<PatientRecords />} />
               <Route path="settings" element={<div>Settings (Coming Soon)</div>} />
             </Route>
             
@@ -57,7 +59,7 @@ const App = () => (
               <Route path="find-doctors" element={<FindDoctors />} />
               <Route path="book-appointment" element={<BookAppointment />} />
               <Route path="symptoms" element={<div>Symptom Checker (Coming Soon)</div>} />
-              <Route path="records" element={<div>Medical Records (Coming Soon)</div>} />
+              <Route path="records" element={<MedicalRecords />} />
               <Route path="profile" element={<div>Profile (Coming Soon)</div>} />
             </Route>
             

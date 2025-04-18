@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { specializations } from "@/components/auth/doctorSpecializations";
+import { format, isSameDay, isAfter } from "date-fns";
+import { Appointment } from "@/types/auth";
 
 // Define the Doctor interface with the missing properties
 interface Doctor {
@@ -16,32 +19,89 @@ interface Doctor {
   email: string;
   role: "doctor";
   phoneNumber: string;
-  specialty: string;
-  hospital?: string;
-  experience?: number;
+  specialization?: string;
 }
 
 const FindDoctors = () => {
   const navigate = useNavigate();
-  const { doctors } = useAuth();
+  const { doctors, appointments } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [specialty, setSpecialty] = useState("all");
 
   // Cast doctors to Doctor[] to ensure TypeScript recognizes the specialty property
   const doctorsWithSpecialty = doctors as Doctor[];
 
-  const specialties = Array.from(
-    new Set(doctorsWithSpecialty.map((doctor) => doctor.specialty))
-  ).sort();
+  // Find next available appointment for each doctor
+  const getNextAvailableSlot = (doctorId: string) => {
+    const doctorAppointments = appointments.filter(
+      (apt) => apt.doctorId === doctorId && apt.status === "scheduled"
+    );
+    
+    if (doctorAppointments.length === 0) {
+      return "Today";
+    }
+    
+    const timeSlots = [
+      "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+      "14:00", "14:30", "15:00", "15:30", "16:00", "16:30"
+    ];
+    
+    // Check next 14 days
+    const today = new Date();
+    
+    for (let day = 0; day < 14; day++) {
+      const checkDate = new Date(today);
+      checkDate.setDate(today.getDate() + day);
+      
+      for (const timeSlot of timeSlots) {
+        const [hours, minutes] = timeSlot.split(":").map(Number);
+        const slotTime = new Date(checkDate);
+        slotTime.setHours(hours, minutes, 0, 0);
+        
+        // Skip past time slots
+        if (!isAfter(slotTime, new Date())) continue;
+        
+        const isBooked = doctorAppointments.some((apt) => {
+          const aptDate = new Date(apt.dateTime);
+          return isSameDay(aptDate, slotTime) && 
+                 aptDate.getHours() === hours && 
+                 aptDate.getMinutes() === minutes;
+        });
+        
+        if (!isBooked) {
+          return day === 0 
+            ? `Today at ${timeSlot}` 
+            : day === 1 
+              ? `Tomorrow at ${timeSlot}` 
+              : `${format(slotTime, "E, MMM d")} at ${timeSlot}`;
+        }
+      }
+    }
+    
+    return "No slots available in next 14 days";
+  };
 
-  const filteredDoctors = doctorsWithSpecialty.filter((doctor) => {
-    const matchesSearch = doctor.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesSpecialty =
-      specialty === "all" || doctor.specialty === specialty;
-    return matchesSearch && matchesSpecialty;
-  });
+  const filteredDoctors = doctorsWithSpecialty
+    .filter((doctor) => {
+      const matchesSearch = doctor.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesSpecialty =
+        specialty === "all" || doctor.specialization === specialty;
+      return matchesSearch && matchesSpecialty;
+    })
+    .sort((a, b) => {
+      // Sort by availability - this is a simple sort that prioritizes doctors with "Today" availability
+      const slotA = getNextAvailableSlot(a.id);
+      const slotB = getNextAvailableSlot(b.id);
+      
+      if (slotA.startsWith("Today") && !slotB.startsWith("Today")) return -1;
+      if (!slotA.startsWith("Today") && slotB.startsWith("Today")) return 1;
+      if (slotA.startsWith("Tomorrow") && !slotB.startsWith("Tomorrow") && !slotB.startsWith("Today")) return -1;
+      if (!slotA.startsWith("Tomorrow") && !slotA.startsWith("Today") && slotB.startsWith("Tomorrow")) return 1;
+      
+      return 0;
+    });
 
   const handleBookAppointment = (doctorId: string) => {
     navigate(`/patient/book-appointment?doctorId=${doctorId}`);
@@ -67,7 +127,7 @@ const FindDoctors = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Specialties</SelectItem>
-            {specialties.map((spec) => (
+            {specializations.map((spec) => (
               <SelectItem key={spec} value={spec}>
                 {spec}
               </SelectItem>
@@ -87,14 +147,9 @@ const FindDoctors = () => {
               <CardContent className="p-6">
                 <div className="flex flex-col space-y-3">
                   <h3 className="font-semibold text-lg">{doctor.name}</h3>
-                  <Badge className="w-fit">{doctor.specialty}</Badge>
+                  <Badge className="w-fit">{doctor.specialization || "General Medicine"}</Badge>
                   <p className="text-sm text-muted-foreground">
-                    {doctor.hospital || "Independent Practice"}
-                  </p>
-                  <p className="text-sm">
-                    {doctor.experience
-                      ? `${doctor.experience} years of experience`
-                      : "Experienced physician"}
+                    Next available: {getNextAvailableSlot(doctor.id)}
                   </p>
                 </div>
               </CardContent>

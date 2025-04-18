@@ -1,18 +1,33 @@
 
-import { User } from "../types/auth";
+import { User, MedicalRecord } from "../types/auth";
+
+export interface SOAPNote {
+  appointmentId: string;
+  doctorName: string;
+  subjective: string;
+  objective: string;
+  assessment: string;
+  plan: string;
+}
 
 export const addNewMedicalRecord = (
   patientId: string,
-  content: string,
+  soapNote: SOAPNote,
   patients: User[]
 ): User[] => {
   return patients.map((patient) => {
     if (patient.id === patientId) {
-      const newRecord = {
+      const newRecord: MedicalRecord = {
         id: `rec${(patient.medicalRecords?.length || 0) + 1}`,
         date: new Date(),
-        content,
+        appointmentId: soapNote.appointmentId,
+        doctorName: soapNote.doctorName,
+        subjective: soapNote.subjective,
+        objective: soapNote.objective,
+        assessment: soapNote.assessment,
+        plan: soapNote.plan,
       };
+      
       return {
         ...patient,
         medicalRecords: [...(patient.medicalRecords || []), newRecord],
@@ -20,4 +35,15 @@ export const addNewMedicalRecord = (
     }
     return patient;
   });
+};
+
+export const getMedicalRecordsByAppointmentId = (
+  patient: User | null,
+  appointmentId: string
+): MedicalRecord | undefined => {
+  if (!patient || !patient.medicalRecords) return undefined;
+  
+  return patient.medicalRecords.find(
+    (record) => record.appointmentId === appointmentId
+  );
 };

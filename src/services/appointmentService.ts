@@ -50,3 +50,12 @@ export const handleCancelAppointment = (
     app.id === appointmentId ? { ...app, status: "cancelled" as const } : app
   );
 };
+
+export const handleCompleteAppointment = (
+  appointmentId: string,
+  appointments: Appointment[]
+): Appointment[] => {
+  return appointments.map((app) =>
+    app.id === appointmentId ? { ...app, status: "completed" as const } : app
+  );
+};
