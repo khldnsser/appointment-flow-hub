@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Appointment, MedicalRecord, UserRole } from "@/types/auth";
@@ -257,10 +258,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Logout error:", error);
+        toast.error("Failed to log out");
+        throw error;
+      }
+      
       setUser(null);
+      
+      // Force redirect to login page
+      window.location.href = '/login';
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error("Logout function error:", error);
       toast.error("Failed to log out");
     }
   };

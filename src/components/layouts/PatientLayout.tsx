@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -50,7 +49,7 @@ const PatientLayout = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    // Navigate is handled inside logout function now
   };
 
   const navigationItems = [
