@@ -2,10 +2,10 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FilePlus } from "lucide-react";
+import { FilePlus, PenLine } from "lucide-react";
 import { format } from "date-fns";
 import { MedicalRecord, User } from "@/types/auth";
-import AddMedicalRecordDialog from "./AddMedicalRecordDialog";
+import MedicalRecordDialog from "./MedicalRecordDialog";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface PatientMedicalRecordsProps {
@@ -14,13 +14,25 @@ interface PatientMedicalRecordsProps {
 
 const PatientMedicalRecords = ({ patient }: PatientMedicalRecordsProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | undefined>();
+  const [mode, setMode] = useState<'create' | 'edit'>('create');
   const { user } = useAuth();
-  // Add a state variable to force re-render when a record is added
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Function to refresh the records
   const handleRecordAdded = () => {
     setRefreshKey(prevKey => prevKey + 1);
+  };
+
+  const handleCreateClick = () => {
+    setMode('create');
+    setSelectedRecord(undefined);
+    setIsDialogOpen(true);
+  };
+
+  const handleEditClick = (record: MedicalRecord) => {
+    setMode('edit');
+    setSelectedRecord(record);
+    setIsDialogOpen(true);
   };
 
   return (
@@ -28,7 +40,7 @@ const PatientMedicalRecords = ({ patient }: PatientMedicalRecordsProps) => {
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Medical Records for {patient.name}</CardTitle>
         <Button 
-          onClick={() => setIsDialogOpen(true)}
+          onClick={handleCreateClick}
           variant="outline"
           size="sm"
           className="flex items-center gap-2"
@@ -54,6 +66,15 @@ const PatientMedicalRecords = ({ patient }: PatientMedicalRecordsProps) => {
                           By {record.doctorName}
                         </p>
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditClick(record)}
+                        className="flex items-center gap-2"
+                      >
+                        <PenLine className="h-4 w-4" />
+                        Edit
+                      </Button>
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -87,13 +108,15 @@ const PatientMedicalRecords = ({ patient }: PatientMedicalRecordsProps) => {
       </CardContent>
       
       {user && (
-        <AddMedicalRecordDialog
+        <MedicalRecordDialog
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
           patientId={patient.id}
-          appointmentId=""
+          appointmentId={selectedRecord?.appointmentId || ""}
           doctorName={user.name}
           onRecordAdded={handleRecordAdded}
+          existingRecord={selectedRecord}
+          mode={mode}
         />
       )}
     </Card>

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, Appointment } from "../types/auth";
 import { MOCK_DOCTORS, MOCK_PATIENTS, MOCK_APPOINTMENTS } from "../data/mockData";
@@ -44,9 +43,55 @@ type AuthContextType = {
   completeAppointment: (appointmentId: string) => void;
   addMedicalRecord: (patientId: string, soapNote: SOAPNote) => void;
   addPrescription: (appointmentId: string, prescription: string) => void;
+  updateMedicalRecord: (patientId: string, recordId: string, soapNote: SOAPNote) => void;
 };
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<{
+  user: User | null;
+  doctors: User[];
+  patients: User[];
+  appointments: Appointment[];
+  login: (email: string, password: string) => Promise<User>;
+  logout: () => void;
+  signupDoctor: (
+    name: string,
+    email: string,
+    phoneNumber: string,
+    password: string,
+    specialization: string,
+    licenseNumber: string,
+    hospitalKey: string
+  ) => Promise<User>;
+  signupPatient: (
+    name: string,
+    email: string,
+    phoneNumber: string,
+    password: string
+  ) => Promise<User>;
+  createAppointment: (appointment: Omit<Appointment, "id">) => Appointment;
+  updateAppointment: (appointment: Appointment) => Appointment;
+  cancelAppointment: (appointmentId: string) => void;
+  completeAppointment: (appointmentId: string) => void;
+  addMedicalRecord: (patientId: string, soapNote: SOAPNote) => void;
+  addPrescription: (appointmentId: string, prescription: string) => void;
+  updateMedicalRecord: (patientId: string, recordId: string, soapNote: SOAPNote) => void;
+}>({
+  user: null,
+  doctors: MOCK_DOCTORS,
+  patients: MOCK_PATIENTS,
+  appointments: MOCK_APPOINTMENTS,
+  login: () => Promise.resolve(null),
+  logout: () => {},
+  signupDoctor: () => Promise.resolve(null),
+  signupPatient: () => Promise.resolve(null),
+  createAppointment: () => ({ id: "" }),
+  updateAppointment: () => ({ id: "" }),
+  cancelAppointment: () => {},
+  completeAppointment: () => {},
+  addMedicalRecord: () => {},
+  addPrescription: () => {},
+  updateMedicalRecord: () => {},
+});
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -162,6 +207,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setAppointments(updatedAppointments);
   };
 
+  const updateMedicalRecord = (patientId: string, recordId: string, soapNote: SOAPNote) => {
+    setPatients((prevPatients) =>
+      prevPatients.map((patient) => {
+        if (patient.id === patientId) {
+          return {
+            ...patient,
+            medicalRecords: patient.medicalRecords?.map((record) =>
+              record.id === recordId
+                ? {
+                    ...record,
+                    subjective: soapNote.subjective,
+                    objective: soapNote.objective,
+                    assessment: soapNote.assessment,
+                    plan: soapNote.plan,
+                  }
+                : record
+            ),
+          };
+        }
+        return patient;
+      })
+    );
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -179,6 +248,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         completeAppointment,
         addMedicalRecord,
         addPrescription,
+        updateMedicalRecord,
       }}
     >
       {children}

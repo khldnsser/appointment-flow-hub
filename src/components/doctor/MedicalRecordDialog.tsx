@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,25 +6,30 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { SOAPNote } from "@/services/medicalRecordService";
 import { toast } from "sonner";
+import { MedicalRecord } from "@/types/auth";
 
-interface AddMedicalRecordDialogProps {
+interface MedicalRecordDialogProps {
   isOpen: boolean;
   onClose: () => void;
   patientId: string;
   appointmentId: string;
   doctorName: string;
-  onRecordAdded?: () => void; // New callback prop
+  onRecordAdded?: () => void;
+  existingRecord?: MedicalRecord;
+  mode?: 'create' | 'edit';
 }
 
-const AddMedicalRecordDialog = ({
+const MedicalRecordDialog = ({
   isOpen,
   onClose,
   patientId,
   appointmentId,
   doctorName,
-  onRecordAdded
-}: AddMedicalRecordDialogProps) => {
-  const { addMedicalRecord, completeAppointment } = useAuth();
+  onRecordAdded,
+  existingRecord,
+  mode = 'create'
+}: MedicalRecordDialogProps) => {
+  const { addMedicalRecord, updateMedicalRecord, completeAppointment } = useAuth();
   
   const [formData, setFormData] = useState<{
     subjective: string;
@@ -38,6 +42,24 @@ const AddMedicalRecordDialog = ({
     assessment: "",
     plan: ""
   });
+
+  useEffect(() => {
+    if (existingRecord && mode === 'edit') {
+      setFormData({
+        subjective: existingRecord.subjective,
+        objective: existingRecord.objective,
+        assessment: existingRecord.assessment,
+        plan: existingRecord.plan
+      });
+    } else {
+      setFormData({
+        subjective: "",
+        objective: "",
+        assessment: "",
+        plan: ""
+      });
+    }
+  }, [existingRecord, mode]);
   
   const handleInputChange = (field: keyof typeof formData) => (
     e: React.ChangeEvent<HTMLTextAreaElement>
@@ -57,23 +79,17 @@ const AddMedicalRecordDialog = ({
       ...formData
     };
     
-    addMedicalRecord(patientId, soapNote);
-    
-    if (appointmentId) {
-      completeAppointment(appointmentId);
+    if (mode === 'edit' && existingRecord) {
+      updateMedicalRecord(patientId, existingRecord.id, soapNote);
+      toast.success("Medical record updated successfully");
+    } else {
+      addMedicalRecord(patientId, soapNote);
+      if (appointmentId) {
+        completeAppointment(appointmentId);
+      }
+      toast.success("Medical record added successfully");
     }
     
-    toast.success("Medical record added successfully");
-    
-    // Reset form
-    setFormData({
-      subjective: "",
-      objective: "",
-      assessment: "",
-      plan: ""
-    });
-    
-    // Trigger the callback to refresh the records
     if (onRecordAdded) {
       onRecordAdded();
     }
@@ -85,7 +101,9 @@ const AddMedicalRecordDialog = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Add SOAP Note</DialogTitle>
+          <DialogTitle>
+            {mode === 'edit' ? 'Edit SOAP Note' : 'Add SOAP Note'}
+          </DialogTitle>
         </DialogHeader>
         
         <div className="grid gap-6 py-4">
@@ -136,11 +154,13 @@ const AddMedicalRecordDialog = ({
         
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSubmit}>Submit</Button>
+          <Button onClick={handleSubmit}>
+            {mode === 'edit' ? 'Update' : 'Submit'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 };
 
-export default AddMedicalRecordDialog;
+export default MedicalRecordDialog;
