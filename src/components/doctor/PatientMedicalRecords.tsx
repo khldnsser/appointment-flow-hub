@@ -1,21 +1,30 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FilePlus } from "lucide-react";
 import { format } from "date-fns";
 import { MedicalRecord, User } from "@/types/auth";
 import AddMedicalRecordDialog from "./AddMedicalRecordDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PatientMedicalRecordsProps {
   patient: User;
 }
 
 const PatientMedicalRecords = ({ patient }: PatientMedicalRecordsProps) => {
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { user } = useAuth();
+  // Add a state variable to force re-render when a record is added
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Function to refresh the records
+  const handleRecordAdded = () => {
+    setRefreshKey(prevKey => prevKey + 1);
+  };
 
   return (
-    <Card>
+    <Card key={refreshKey}>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Medical Records for {patient.name}</CardTitle>
         <Button 
@@ -77,13 +86,16 @@ const PatientMedicalRecords = ({ patient }: PatientMedicalRecordsProps) => {
         )}
       </CardContent>
       
-      <AddMedicalRecordDialog
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
-        patientId={patient.id}
-        appointmentId=""
-        doctorName=""
-      />
+      {user && (
+        <AddMedicalRecordDialog
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          patientId={patient.id}
+          appointmentId=""
+          doctorName={user.name}
+          onRecordAdded={handleRecordAdded}
+        />
+      )}
     </Card>
   );
 };

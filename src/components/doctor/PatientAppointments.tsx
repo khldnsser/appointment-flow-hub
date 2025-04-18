@@ -16,13 +16,20 @@ const PatientAppointments = ({ patient }: PatientAppointmentsProps) => {
   const { appointments, user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<string | null>(null);
+  // Add a state variable to force re-render when a record is added
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Function to refresh the appointments
+  const handleRecordAdded = () => {
+    setRefreshKey(prevKey => prevKey + 1);
+  };
 
   const patientAppointments = appointments.filter(
     (apt) => apt.patientId === patient.id && apt.doctorId === user?.id
   ).sort((a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime());
 
   return (
-    <Card>
+    <Card key={refreshKey}>
       <CardHeader>
         <CardTitle>Appointments for {patient.name}</CardTitle>
       </CardHeader>
@@ -82,6 +89,7 @@ const PatientAppointments = ({ patient }: PatientAppointmentsProps) => {
           patientId={patient.id}
           appointmentId={selectedAppointment || ""}
           doctorName={user.name}
+          onRecordAdded={handleRecordAdded}
         />
       )}
     </Card>

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -13,6 +14,7 @@ interface AddMedicalRecordDialogProps {
   patientId: string;
   appointmentId: string;
   doctorName: string;
+  onRecordAdded?: () => void; // New callback prop
 }
 
 const AddMedicalRecordDialog = ({
@@ -20,7 +22,8 @@ const AddMedicalRecordDialog = ({
   onClose,
   patientId,
   appointmentId,
-  doctorName
+  doctorName,
+  onRecordAdded
 }: AddMedicalRecordDialogProps) => {
   const { addMedicalRecord, completeAppointment } = useAuth();
   
@@ -61,14 +64,21 @@ const AddMedicalRecordDialog = ({
     }
     
     toast.success("Medical record added successfully");
-    onClose();
     
+    // Reset form
     setFormData({
       subjective: "",
       objective: "",
       assessment: "",
       plan: ""
     });
+    
+    // Trigger the callback to refresh the records
+    if (onRecordAdded) {
+      onRecordAdded();
+    }
+    
+    onClose();
   };
   
   return (
