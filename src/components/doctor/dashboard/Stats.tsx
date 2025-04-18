@@ -1,9 +1,8 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarIcon, Check, Clock } from "lucide-react";
-import { Appointment } from "@/contexts/AuthContext";
-import { startOfDay } from "date-fns"; // Add this import
+import { Appointment } from "@/types/auth";
+import { startOfDay } from "date-fns";
 
 interface StatsProps {
   appointments: Appointment[];

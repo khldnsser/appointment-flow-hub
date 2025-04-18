@@ -1,11 +1,10 @@
-
 import React from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
-import { Appointment } from "@/contexts/AuthContext";
+import { Appointment } from "@/types/auth";
 
 interface AppointmentDialogProps {
   appointment: Appointment | null;

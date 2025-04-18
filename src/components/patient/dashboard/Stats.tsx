@@ -1,8 +1,7 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarIcon, Clock } from "lucide-react";
-import { Appointment } from "@/contexts/AuthContext";
+import { Appointment } from "@/types/auth";
 
 interface StatsProps {
   appointments: Appointment[];

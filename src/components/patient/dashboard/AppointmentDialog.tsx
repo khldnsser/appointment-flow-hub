@@ -1,9 +1,8 @@
-
 import React from "react";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Appointment } from "@/contexts/AuthContext";
+import { Appointment } from "@/types/auth";
 
 interface AppointmentDialogProps {
   appointment: Appointment | null;

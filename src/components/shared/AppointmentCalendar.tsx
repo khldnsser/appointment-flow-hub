@@ -1,9 +1,8 @@
-
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { startOfWeek, addDays, format, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Appointment } from "@/contexts/AuthContext";
+import { Appointment } from "@/types/auth";
 
 interface AppointmentCalendarProps {
   appointments: Appointment[];

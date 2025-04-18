@@ -1,6 +1,7 @@
 
 import React, { useState } from "react";
-import { useAuth, Appointment } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { Appointment } from "@/types/auth";
 import { format, startOfDay } from "date-fns";
 import { toast } from "@/components/ui/sonner";
 import AppointmentCalendar from "@/components/shared/AppointmentCalendar";
