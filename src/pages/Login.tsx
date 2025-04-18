@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,12 +22,6 @@ const Login = () => {
       const user = await login(email, password);
       if (user) {
         toast.success(`Welcome back, ${user.name}!`);
-        // Explicitly navigate based on user role
-        if (user.role === 'doctor') {
-          navigate('/doctor/dashboard');
-        } else {
-          navigate('/patient/dashboard');
-        }
       }
     } catch (error) {
       console.error("Login error:", error);
