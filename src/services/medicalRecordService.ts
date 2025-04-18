@@ -1,5 +1,6 @@
 
-import { User, MedicalRecord, SOAPNote } from "@/types/auth";
+import { User, SOAPNote, MedicalRecord } from "@/types/auth";
+import { toast } from "@/components/ui/sonner";
 
 export const addMedicalRecord = (
   patients: User[],
@@ -8,7 +9,7 @@ export const addMedicalRecord = (
   soapNote: SOAPNote
 ) => {
   const newRecord: MedicalRecord = {
-    id: `record${Date.now()}`,
+    id: `record-${Date.now()}`,
     date: new Date(),
     appointmentId: soapNote.appointmentId,
     doctorName: soapNote.doctorName,
@@ -19,13 +20,20 @@ export const addMedicalRecord = (
     plan: soapNote.plan,
   };
 
-  setPatients(patients.map(patient => {
-    if (patient.id === patientId) {
-      const updatedRecords = patient.medicalRecords ? [...patient.medicalRecords, newRecord] : [newRecord];
-      return { ...patient, medicalRecords: updatedRecords };
-    }
-    return patient;
-  }));
+  setPatients(
+    patients.map((patient) => {
+      if (patient.id === patientId) {
+        const existingRecords = patient.medicalRecords || [];
+        return {
+          ...patient,
+          medicalRecords: [...existingRecords, newRecord],
+        };
+      }
+      return patient;
+    })
+  );
+
+  toast.success("Medical record added successfully");
 };
 
 export const updateMedicalRecord = (
@@ -35,22 +43,27 @@ export const updateMedicalRecord = (
   recordId: string,
   soapNote: SOAPNote
 ) => {
-  setPatients(patients.map(patient => {
-    if (patient.id === patientId && patient.medicalRecords) {
-      const updatedRecords = patient.medicalRecords.map(record => {
-        if (record.id === recordId) {
-          return {
-            ...record,
-            subjective: soapNote.subjective,
-            objective: soapNote.objective,
-            assessment: soapNote.assessment,
-            plan: soapNote.plan,
-          };
-        }
-        return record;
-      });
-      return { ...patient, medicalRecords: updatedRecords };
-    }
-    return patient;
-  }));
+  setPatients(
+    patients.map((patient) => {
+      if (patient.id === patientId && patient.medicalRecords) {
+        return {
+          ...patient,
+          medicalRecords: patient.medicalRecords.map((record) =>
+            record.id === recordId
+              ? {
+                  ...record,
+                  subjective: soapNote.subjective,
+                  objective: soapNote.objective,
+                  assessment: soapNote.assessment,
+                  plan: soapNote.plan,
+                }
+              : record
+          ),
+        };
+      }
+      return patient;
+    })
+  );
+
+  toast.success("Medical record updated successfully");
 };

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AuthContextType, User, SOAPNote } from "@/types/auth";
+import { AuthContextType, User, SOAPNote, UserRole, Appointment } from "@/types/auth";
 import { useAuthState } from "@/hooks/useAuthState";
 import * as authService from "@/services/authService";
 import * as appointmentService from "@/services/appointmentService";
@@ -81,7 +81,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         id: "doctor1",
         name: "Dr. John Smith",
         email: "john.smith@example.com",
-        role: "doctor" as UserRole,
+        role: "doctor",
         phoneNumber: "12345678",
         specialization: "Cardiology",
         licenseNumber: "MED12345",
@@ -90,7 +90,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         id: "doctor2",
         name: "Dr. Sarah Johnson",
         email: "sarah.johnson@example.com",
-        role: "doctor" as UserRole,
+        role: "doctor",
         phoneNumber: "87654321",
         specialization: "Neurology",
         licenseNumber: "MED67890",
@@ -102,7 +102,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         id: "patient1",
         name: "James Wilson",
         email: "james.wilson@example.com",
-        role: "patient" as UserRole,
+        role: "patient",
         phoneNumber: "13579246",
         medicalRecords: [],
       },
@@ -110,7 +110,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         id: "patient2",
         name: "Emily Davis",
         email: "emily.davis@example.com",
-        role: "patient" as UserRole,
+        role: "patient",
         phoneNumber: "24681357",
         medicalRecords: [],
       },

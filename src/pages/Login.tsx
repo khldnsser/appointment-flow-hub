@@ -32,6 +32,8 @@ const Login = () => {
       const userData = await login(email, password);
       console.log("Login successful, user data:", userData);
       
+      toast.success(`Welcome back, ${userData.name}!`);
+      
       // Navigate based on user role
       const destination = userData.role === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard';
       navigate(destination);
