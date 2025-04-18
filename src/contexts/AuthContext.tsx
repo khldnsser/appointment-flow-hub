@@ -24,6 +24,7 @@ type AuthContextType = {
     licenseNumber: string,
     hospitalKey: string
   ) => Promise<User>;
+  // Add missing properties needed by components
   appointments: Appointment[];
   doctors: User[];
   patients: User[];
@@ -35,6 +36,7 @@ type AuthContextType = {
   addPrescription: (appointmentId: string, prescription: string) => void;
 };
 
+// Default context value with empty implementations
 const defaultContextValue: AuthContextType = {
   user: null,
   login: () => Promise.reject("Not initialized"),
@@ -54,12 +56,14 @@ const defaultContextValue: AuthContextType = {
 
 const AuthContext = createContext<AuthContextType>(defaultContextValue);
 
+// Create a wrapper component that doesn't use useNavigate
 export const AuthProviderWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <AuthProvider navigate={() => {}}>{children}</AuthProvider>
   );
 };
 
+// Modified AuthProvider that accepts navigate as a prop
 export const AuthProvider = ({ 
   children, 
   navigate 
@@ -73,6 +77,7 @@ export const AuthProvider = ({
   const [patients, setPatients] = useState<User[]>([]);
 
   useEffect(() => {
+    // Check initial session
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -80,6 +85,7 @@ export const AuthProvider = ({
       }
     };
 
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' && session) {
@@ -92,18 +98,24 @@ export const AuthProvider = ({
 
     checkSession();
 
+    // Cleanup subscription
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
+  // Fetch mock data for demonstration
   useEffect(() => {
+    // Load mock doctors, patients, and appointments
     if (user) {
+      // For demonstration, we'll use mock data
+      // In a real app, these would come from Supabase queries
       loadMockData();
     }
   }, [user]);
 
   const loadMockData = () => {
+    // Mock data for demonstration
     const mockDoctors: User[] = [
       {
         id: "doctor1",
@@ -172,6 +184,7 @@ export const AuthProvider = ({
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      // Fetch user profile from the profiles table
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -180,6 +193,7 @@ export const AuthProvider = ({
 
       if (profileError) throw profileError;
 
+      // If it's a doctor, fetch additional doctor details
       let doctorDetails = null;
       if (profileData.role === 'doctor') {
         const { data: doctorData } = await supabase
@@ -191,11 +205,12 @@ export const AuthProvider = ({
         doctorDetails = doctorData;
       }
 
+      // Create user object matching the User type
       const userProfile: User = {
         id: profileData.id,
         name: profileData.name,
         email: profileData.email,
-        role: profileData.role as UserRole,
+        role: profileData.role as UserRole, // Cast to UserRole type
         phoneNumber: profileData.phone_number,
         specialization: doctorDetails?.specialization,
         licenseNumber: doctorDetails?.license_number,
@@ -208,7 +223,7 @@ export const AuthProvider = ({
     }
   };
 
-  const login = async (email: string, password: string): Promise<User> => {
+  const login = async (email: string, password: string) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -224,14 +239,27 @@ export const AuthProvider = ({
         throw new Error('Login failed');
       }
 
+      // Fetch the user profile after login
       await fetchUserProfile(data.user.id);
       
-      if (user) {
-        return user;
+      // Get the user profile from state
+      const currentUser = user;
+      
+      // Only redirect if we have a valid user
+      if (currentUser) {
+        // Redirect based on role
+        if (currentUser.role === 'doctor') {
+          navigate('/doctor/dashboard');
+        } else {
+          navigate('/patient/dashboard');
+        }
+        
+        return currentUser;
       } else {
+        // If user profile is not available yet, create a minimal user object
         const minimalUser: User = {
           id: data.user.id,
-          name: data.user.user_metadata?.name || email.split('@')[0],
+          name: data.user.user_metadata?.name || email.split('@')[0], // Fallback name
           email: email,
           role: (data.user.user_metadata?.role as UserRole) || 'patient',
           phoneNumber: data.user.user_metadata?.phoneNumber || '',
@@ -258,6 +286,7 @@ export const AuthProvider = ({
     phoneNumber: string, 
     password: string
   ) => {
+    // Signup with Supabase
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -280,6 +309,7 @@ export const AuthProvider = ({
       throw new Error('Signup failed');
     }
 
+    // Automatically navigate to patient dashboard
     navigate('/patient/dashboard');
 
     return user as User;
@@ -294,10 +324,12 @@ export const AuthProvider = ({
     licenseNumber: string,
     hospitalKey: string
   ) => {
+    // Validate hospital key (you might want to implement a more secure check)
     if (hospitalKey !== '1234') {
       throw new Error('Invalid hospital key');
     }
 
+    // Signup with Supabase
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -322,11 +354,13 @@ export const AuthProvider = ({
       throw new Error('Signup failed');
     }
 
+    // Automatically navigate to doctor dashboard
     navigate('/doctor/dashboard');
 
     return user as User;
   };
 
+  // Implementation of the additional methods
   const createAppointment = (appointmentData: Omit<Appointment, "id">) => {
     const newAppointment: Appointment = {
       ...appointmentData,

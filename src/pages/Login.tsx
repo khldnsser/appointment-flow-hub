@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,36 +16,17 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email || !password) {
-      toast.error("Please enter both email and password");
-      return;
-    }
-    
     setIsLoading(true);
 
     try {
       const user = await login(email, password);
-      
       if (user) {
-        // Reset loading state before navigation
-        setIsLoading(false);
         toast.success(`Welcome back, ${user.name}!`);
-        
-        // Navigate based on user role
-        if (user.role === 'doctor') {
-          navigate('/doctor/dashboard');
-        } else {
-          navigate('/patient/dashboard');
-        }
-      } else {
-        // Handle case where login succeeds but no user is returned
-        setIsLoading(false);
-        toast.error("Login failed. No user data received.");
       }
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Login failed. Please check your credentials.");
+    } finally {
       setIsLoading(false);
     }
   };
