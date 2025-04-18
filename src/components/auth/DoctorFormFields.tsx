@@ -111,11 +111,11 @@ export const DoctorFormFields: React.FC<DoctorFormFieldsProps> = ({
           value={hospitalKey}
           onChange={(e) => setHospitalKey(e.target.value)}
           required
-          placeholder="4-digit key"
+          placeholder="Enter 1234"
           maxLength={4}
         />
         <p className="text-xs text-gray-500">
-          4-digit key provided by your hospital (use 1234 for demo)
+          Hospital key (1234) required for verification
         </p>
       </div>
     </>

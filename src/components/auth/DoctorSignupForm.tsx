@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,13 +41,8 @@ export const DoctorSignupForm = () => {
       return;
     }
     
-    if (hospitalKey.length !== 4 || !/^\d+$/.test(hospitalKey)) {
-      toast.error("Hospital key must be 4 digits");
-      return;
-    }
-    
-    if (!specialization) {
-      toast.error("Please select a specialization");
+    if (hospitalKey !== "1234") {
+      toast.error("Invalid hospital key");
       return;
     }
     
