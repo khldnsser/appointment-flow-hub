@@ -33,7 +33,7 @@ export const completeAppointment = (
   setAppointments: (appointments: Appointment[]) => void,
   appointmentId: string
 ) => {
-  setAppointments(.
+  setAppointments(
     appointments.map(apt => 
       apt.id === appointmentId ? { ...apt, status: "completed" } : apt
     )
