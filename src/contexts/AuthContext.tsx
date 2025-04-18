@@ -116,31 +116,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       },
     ];
 
-    const mockAppointments: Appointment[] = [
-      {
-        id: "apt1",
-        doctorId: "doctor1",
-        patientId: "patient1",
-        doctorName: "Dr. John Smith",
-        patientName: "James Wilson",
-        dateTime: new Date(2025, 3, 20, 10, 0),
-        status: "scheduled",
-      },
-      {
-        id: "apt2",
-        doctorId: "doctor2",
-        patientId: "patient2",
-        doctorName: "Dr. Sarah Johnson",
-        patientName: "Emily Davis",
-        dateTime: new Date(2025, 3, 21, 14, 30),
-        status: "scheduled",
-      },
-    ];
-
     setDoctors(mockDoctors);
     setPatients(mockPatients);
-    setAppointments(mockAppointments);
   };
+
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('appointments')
+          .select('*');
+
+        if (error) throw error;
+        
+        setAppointments(data.map(apt => ({
+          ...apt,
+          dateTime: new Date(apt.date_time)
+        })));
+      } catch (error) {
+        console.error('Error fetching appointments:', error);
+      }
+    };
+
+    if (user) {
+      fetchAppointments();
+    }
+  }, [user, setAppointments]);
 
   const contextValue: AuthContextType = {
     user,
@@ -169,14 +172,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         licenseNumber,
         hospitalKey
       ),
-    createAppointment: (appointmentData) =>
-      appointmentService.createAppointment(appointments, setAppointments, appointmentData),
-    cancelAppointment: (appointmentId) =>
-      appointmentService.cancelAppointment(appointments, setAppointments, appointmentId),
-    completeAppointment: (appointmentId) =>
-      appointmentService.completeAppointment(appointments, setAppointments, appointmentId),
-    addPrescription: (appointmentId, prescription) =>
-      appointmentService.addPrescription(appointments, setAppointments, appointmentId, prescription),
+    createAppointment: async (appointmentData) => {
+      const newAppointment = await appointmentService.createAppointment(appointmentData);
+      setAppointments([...appointments, { ...newAppointment, dateTime: new Date(newAppointment.date_time) }]);
+    },
+    cancelAppointment: async (appointmentId) => {
+      await appointmentService.cancelAppointment(appointmentId);
+      setAppointments(
+        appointments.map(apt =>
+          apt.id === appointmentId ? { ...apt, status: "cancelled" } : apt
+        )
+      );
+    },
+    completeAppointment: async (appointmentId) => {
+      await appointmentService.completeAppointment(appointmentId);
+      setAppointments(
+        appointments.map(apt =>
+          apt.id === appointmentId ? { ...apt, status: "completed" } : apt
+        )
+      );
+    },
+    addPrescription: async (appointmentId, prescription) => {
+      await appointmentService.addPrescription(appointmentId, prescription);
+      setAppointments(
+        appointments.map(apt =>
+          apt.id === appointmentId ? { ...apt, prescription } : apt
+        )
+      );
+    },
     addMedicalRecord: (patientId, soapNote) =>
       medicalRecordService.addMedicalRecord(patients, setPatients, patientId, soapNote),
     updateMedicalRecord: (patientId, recordId, soapNote) =>
