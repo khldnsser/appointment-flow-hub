@@ -2,6 +2,8 @@
 import { User, SOAPNote, MedicalRecord } from "@/types/auth";
 import { toast } from "@/components/ui/sonner";
 
+export { SOAPNote }; // Export the SOAPNote type
+
 export const addMedicalRecord = (
   patients: User[],
   setPatients: (patients: User[]) => void,
