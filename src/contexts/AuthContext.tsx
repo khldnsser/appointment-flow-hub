@@ -179,49 +179,46 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log("Fetching profile for user ID:", userId);
       
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
+      // Try fetching patient profile first
+      const { data: patientData, error: patientError } = await supabase
+        .from('patient_profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (profileError) {
-        console.error("Profile fetch error:", profileError);
-        throw profileError;
+      if (!patientError && patientData) {
+        return {
+          id: patientData.id,
+          name: patientData.name,
+          email: patientData.email,
+          role: 'patient',
+          phoneNumber: patientData.phone_number,
+          medicalRecords: [],
+        };
       }
 
-      console.log("Profile data retrieved:", profileData);
+      // If not a patient, try fetching doctor profile
+      const { data: doctorData, error: doctorError } = await supabase
+        .from('doctor_profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-      let doctorDetails = null;
-      if (profileData.role === 'doctor') {
-        const { data: doctorData, error: doctorError } = await supabase
-          .from('doctor_details')
-          .select('*')
-          .eq('id', userId)
-          .single();
-        
-        if (doctorError) {
-          console.error("Doctor details fetch error:", doctorError);
-        } else {
-          doctorDetails = doctorData;
-          console.log("Doctor details retrieved:", doctorDetails);
-        }
+      if (!doctorError && doctorData) {
+        return {
+          id: doctorData.id,
+          name: doctorData.name,
+          email: doctorData.email,
+          role: 'doctor',
+          phoneNumber: doctorData.phone_number,
+          specialization: doctorData.specialization,
+          licenseNumber: doctorData.license_number,
+        };
       }
 
-      const userProfile: User = {
-        id: profileData.id,
-        name: profileData.name,
-        email: profileData.email,
-        role: profileData.role as UserRole,
-        phoneNumber: profileData.phone_number,
-        specialization: doctorDetails?.specialization,
-        licenseNumber: doctorDetails?.license_number,
-      };
-
-      return userProfile;
+      throw new Error('No profile found');
     } catch (error) {
       console.error('Error fetching user profile:', error);
-      toast.error('Failed to load user profile');
       throw error;
     }
   };
