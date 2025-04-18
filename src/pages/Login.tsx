@@ -45,7 +45,14 @@ const Login = () => {
       console.error("Login error:", error);
       let errorMessage = "Login failed. Please check your credentials.";
       
+      // Check for rate limit error
       if (error instanceof Error) {
+        const errorText = error.message.toLowerCase();
+        
+        if (errorText.includes("rate limit") || errorText.includes("too many requests") || errorText.includes("429")) {
+          errorMessage = "You've reached the login rate limit. Please wait a few minutes before trying again.";
+        }
+        
         setLoginError(error.message);
         errorMessage = error.message;
       }
@@ -112,6 +119,9 @@ const Login = () => {
               <Link to="/signup-select" className="text-medblue-600 hover:underline">
                 Create an account
               </Link>
+            </div>
+            <div className="text-xs text-gray-500 text-center mt-2">
+              Note: For testing, if you hit rate limits, try again after a few minutes or use a different account.
             </div>
           </CardFooter>
         </Card>

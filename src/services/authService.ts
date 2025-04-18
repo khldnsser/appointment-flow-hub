@@ -14,6 +14,12 @@ export const login = async (email: string, password: string): Promise<User> => {
 
     if (error) {
       console.error("Supabase auth error:", error);
+      
+      // Check for rate limit errors
+      if (error.status === 429 || error.message.includes("rate limit") || error.message.includes("too many requests")) {
+        throw new Error("You've reached the login rate limit. Please wait a few minutes before trying again.");
+      }
+      
       toast.error(error.message);
       throw error;
     }
