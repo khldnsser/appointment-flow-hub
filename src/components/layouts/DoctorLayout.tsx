@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -28,9 +28,20 @@ const DoctorLayout = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
-  if (!user || user.role !== "doctor") {
-    navigate("/login");
-    return null;
+  useEffect(() => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    
+    if (user.role !== "doctor") {
+      navigate("/login");
+      return;
+    }
+  }, [user, navigate]);
+
+  if (!user) {
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
   }
 
   const handleLogout = () => {
