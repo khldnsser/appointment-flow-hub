@@ -56,11 +56,14 @@ const AddMedicalRecordDialog = ({
     };
     
     addMedicalRecord(patientId, soapNote);
-    completeAppointment(appointmentId);
+    
+    if (appointmentId) {
+      completeAppointment(appointmentId);
+    }
+    
     toast.success("Medical record added successfully");
     onClose();
     
-    // Reset form
     setFormData({
       subjective: "",
       objective: "",
