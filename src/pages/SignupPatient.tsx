@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
+import PasswordRequirements from "@/components/auth/PasswordRequirements";
 
 const SignupPatient = () => {
   const [name, setName] = useState("");
@@ -30,6 +30,17 @@ const SignupPatient = () => {
     
     if (phoneNumber.length !== 8 || !/^\d+$/.test(phoneNumber)) {
       toast.error("Phone number must be 8 digits");
+      return;
+    }
+
+    // Password requirements validation
+    const hasMinLength = password.length >= 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (!hasMinLength || !hasUpperCase || !hasNumber || !hasSpecialChar) {
+      toast.error("Password does not meet all requirements");
       return;
     }
     
@@ -112,11 +123,8 @@ const SignupPatient = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  minLength={8}
                 />
-                <p className="text-xs text-gray-500">
-                  Must be at least 8 characters long and include a number and uppercase letter
-                </p>
+                <PasswordRequirements password={password} />
               </div>
               
               <div className="space-y-2">
