@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -5,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PasswordRequirements from "@/components/auth/PasswordRequirements";
 import { DoctorFormFields } from "./DoctorFormFields";
 
@@ -61,7 +61,9 @@ export const DoctorSignupForm = () => {
     try {
       await signupDoctor(name, email, phoneNumber, password, specialization, licenseNumber, hospitalKey);
       toast.success("Doctor account created successfully!");
-      navigate("/doctor/dashboard");
+      
+      // Let AuthContext handle the navigation after signup is complete
+      // The navigation will happen in AuthContext's useEffect
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message);
@@ -69,7 +71,7 @@ export const DoctorSignupForm = () => {
         toast.error("An unexpected error occurred");
       }
       console.error("Signup error:", error);
-    } finally {
+      // Always reset loading state on error
       setIsLoading(false);
     }
   };

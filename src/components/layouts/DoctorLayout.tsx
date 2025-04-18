@@ -1,4 +1,5 @@
-import React from "react";
+
+import React, { useEffect } from "react";
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -28,8 +29,20 @@ const DoctorLayout = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
-  if (!user || user.role !== "doctor") {
-    navigate("/login");
+  useEffect(() => {
+    // Check authentication in useEffect to avoid React Router warning
+    if (!user || user.role !== "doctor") {
+      navigate("/login");
+    }
+  }, [user, navigate]);
+
+  // Return loading or null when no user is available yet
+  if (!user) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50">Loading...</div>;
+  }
+
+  // Only continue rendering if we have a doctor user
+  if (user.role !== "doctor") {
     return null;
   }
 
