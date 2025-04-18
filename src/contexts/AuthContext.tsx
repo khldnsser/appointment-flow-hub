@@ -208,7 +208,7 @@ export const AuthProvider = ({
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<User> => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,

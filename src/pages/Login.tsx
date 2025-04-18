@@ -29,20 +29,24 @@ const Login = () => {
       const user = await login(email, password);
       
       if (user) {
+        // Reset loading state before navigation
+        setIsLoading(false);
         toast.success(`Welcome back, ${user.name}!`);
         
-        // Immediately navigate based on user role
+        // Navigate based on user role
         if (user.role === 'doctor') {
           navigate('/doctor/dashboard');
         } else {
           navigate('/patient/dashboard');
         }
+      } else {
+        // Handle case where login succeeds but no user is returned
+        setIsLoading(false);
+        toast.error("Login failed. No user data received.");
       }
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Login failed. Please check your credentials.");
-      
-      // Make sure to reset loading state even when there's an error
       setIsLoading(false);
     }
   };
